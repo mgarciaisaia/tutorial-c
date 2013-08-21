@@ -1,0 +1,274 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Arrancando - Tutorial de C</title>
+  <meta name="author" content="Matias Garcia Isaia">
+
+  
+  <meta name="description" content="Vamos a hacer un programa en C, por lo que empezamos con una función: ok.c 1
+2
+3
+int main (void) { return 0;
+} Este es (aproximadamente) el programa &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/21/arrancando">
+  <link href="/tutorial-c/favicon.png" rel="icon">
+  <link href="/tutorial-c/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/tutorial-c/atom.xml" rel="alternate" title="Tutorial de C" type="application/atom+xml">
+  <script src="/tutorial-c/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/tutorial-c/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/tutorial-c/">Tutorial de C</a></h1>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/tutorial-c/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:mgarciaisaia.github.io/tutorial-c" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/tutorial-c/">Blog</a></li>
+  <li><a href="/tutorial-c/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Arrancando</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-08-21T01:11:00-03:00" pubdate data-updated="true">Aug 21<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
+
+<figure class='code'><figcaption><span>ok.c </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Este es (aproximadamente) el programa más chico que podamos hacer en C. <code>main()</code> es la función que se ejecuta al ejecutar un programa C. En este caso, el prototipo de la función es <code>int main(void)</code>: nuestro programa no recibirá parámetros (<code>void</code>), y devolverá a quién lo ejecute un entero signado (<code>int</code>).<!--more--></p>
+
+<p>Nuestro programa tiene una única instrucción: devolver (<code>return</code>) 0, un código de salida que, por convención, indica que el programa ejecutó correctamente.
+Compilemos nuestro programa:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>gcc ok.c -o ok
+</span><span class='line'><span class="nv">$ </span>ls
+</span><span class='line'>ok.c ok
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>gcc</code> es el compilador más usado de C. Parte de la GNU Compiler Collection, <code>gcc</code> es el compilador específico de C (el proyecto se llamaba GNU C Compiler, pero cambiaron el nombre por soportar también C++, Java y tantos otros lenguajes). Como casi todo comando en Linux, Unix y derivados, podemos leer su manual haciendo <code>man gcc</code>.</p>
+
+<p><code>gcc</code> recibe como parámetro (entre tantos otros) el archivo fuente a compilar (<code>ok.c</code>), y el parámetro <code>-o NOMBRE</code> indica qué nombre queremos darle al binario resultante (<code>ok</code>). De no indicarlo, <code>gcc</code> elije uno <em>hermoso</em>: <code>a.out</code>.</p>
+
+<p>Ejecutemos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./ok
+</span><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$?</span>
+</span><span class='line'>0
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Hay un 0, así que debemos estar <em>no-tan-mal</em>, como mínimo. ¿Qué pasó acá?</p>
+
+<p>En UNIX, la forma de ejecutar un programa es escribiendo como orden la ruta completa al mismo y, luego, separados por espacios, todos sus parámetros. Por ejemplo:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>/bin/ps --version
+</span><span class='line'>procps-ng version 3.3.3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ejecutamos el programa <code>/bin/ps</code> con el parámetro <code>--version</code>. <code>ps</code> nos contesta la versión que tenemos instalada. En nuestro caso anterior, ejecutamos <code>./ok</code>. <code>.</code> y <code>..</code> son dos enlaces especiales que hay en todo directorio: <code>.</code> enlaza al directorio actual (el propio directorio que contiene a <code>.</code>), y <code>..</code> enlaza al directorio padre del actual (osea, al directorio que contiene al directorio que contiene a <code>..</code>). Entonces, al escribir <code>.</code> ya estamos referenciando toda la ruta al directorio actual. Si estamos ubicados en <code>/home/utnso</code>, <code>.</code> y <code>/home/utnso</code> se refieren al mismo directorio. Agregándole <code>/ok</code> queda <code>./ok</code>, que equivale a <code>/home/utnso/ok</code>, la ruta completa a nuestro programa. Hell yeah, ruta completa => ¡ejecutamos el programa!</p>
+
+<p>&ldquo;Che, pero&hellip; ¡No me mostró nada! ¿Dónde está mi 0?&rdquo;</p>
+
+<p>Bueno, sí, es cierto. No muestra nada porque no le pedimos que muestre nada: nuestro programa sólo devuelve un 0, y nuestra consola sólo ejecuta las instrucciones que le damos. Entonces, pidámosle que muestre el resultado: <code>echo $?</code>.</p>
+
+<p>&ldquo;¡Que te recontra!&rdquo; Bueno, sí. [El amigo Bourne] (<a href="http://en.wikipedia.org/wiki/Stephen_R._Bourne">http://en.wikipedia.org/wiki/Stephen_R._Bourne</a>) había faltado a la clase de nombres descriptivos. <code>echo</code> es un comandode las consolas que imprime en pantalla lo que sea que le pasemos por parámetro. Por ejemplo, <code>echo Hola mundo</code> imprime <code>Hola mundo</code>. <code>bash</code> (el lenguaje que interpreta nuestra consola) posee variables, y para dereferenciarlas (leerlas) hay que anteponerle un <code>$</code> al nombre de la variable. Por ejemplo (<code>#</code> es el caracter de comentario):</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ nombre</span> <span class="o">=</span> <span class="s2">&quot;Mundo&quot;</span> <span class="c"># asigno &quot;Mundo&quot; a la variable nombre, creandola si no existe</span>
+</span><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$nombre</span> <span class="c"># imprimo el contenido de la variable llamada nombre</span>
+</span><span class='line'>Mundo
+</span><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;Hola $nombre&quot;</span>
+</span><span class='line'>Hola Mundo
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>En particular, nosotros le habíamos pedido mostrar una variable: <code>$?</code>. <code>?</code> es una variable manejada automáticamente por Bash. Cada vez que ejecuta una instrucción, Bash almacena en <code>?</code> el código de salida del programa ejecutado. Por eso, al pedirle que imprima la variable <code>?</code> (<code>echo $?</code>), Bash nos mostró el 0 que nuestro programa había devuelto.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Matias Garcia Isaia</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-08-21T01:11:00-03:00" pubdate data-updated="true">Aug 21<span>st</span>, 2013</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/21/arrancando/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/21/arrancando/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+      
+        <a class="basic-alignment right" href="/tutorial-c/blog/2013/08/21/variables/" title="Next Post: Variables">Variables &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/tutorial-c/blog/2013/08/21/variables/">Variables</a>
+      </li>
+    
+      <li class="post">
+        <a href="/tutorial-c/blog/2013/08/21/arrancando/">Arrancando</a>
+      </li>
+    
+  </ul>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Matias Garcia Isaia -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
