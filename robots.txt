@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: 
-
-Sitemap: http://mgarciaisaia.github.io/tutorial-c/sitemap.xml 
