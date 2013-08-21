@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Tutorial de C]]></title>
+  <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
+  <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
+  <updated>2013-08-21T01:00:11-03:00</updated>
+  <id>http://mgarciaisaia.github.io/tutorial-c/</id>
+  <author>
+    <name><![CDATA[Matias Garcia Isaia]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+</feed>
