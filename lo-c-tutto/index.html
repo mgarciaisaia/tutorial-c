@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>C para Operativos</title>
+  <title>Lo C Tutto - C para Operativos</title>
   <meta name="author" content="Sistemas Operativos @ UTN FRBA">
 
   
-  <meta name="description" content="Bien. Escribimos, compilamos y corrimos nuestro primer programa. Pero es como bastante aburrido, ¿no? Vamos a ponerle onda: declaremos una variable &hellip;">
+  <meta name="description" content="Lo C Tutto Aug 22nd, 2013 Lo C Tutto es un tutorial introductorio al lenguaje de progmraación C y varias otras herramientas y conceptos útiles a la &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c">
+  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/lo-c-tutto">
   <link href="/tutorial-c/favicon.png" rel="icon">
   <link href="/tutorial-c/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/tutorial-c/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
@@ -75,19 +75,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article role="article">
   
-  
-  
-    <article>
-      
   <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/08/20/variables/">Variables</a></h1>
-    
-    
-      <p class="meta">
-        
+    <h1 class="entry-title">Lo C Tutto</h1>
+    <p class="meta">
 
 
 
@@ -99,99 +92,91 @@
   
 
 
-<time datetime="2013-08-20T01:21:00-03:00" pubdate data-updated="true">Aug 20<span>th</span>, 2013</time>
-        
-      </p>
-    
+<time datetime="2013-08-22T00:21:00-03:00" pubdate data-updated="true">Aug 22<span>nd</span>, 2013</time></p>
   </header>
-
-
-  <div class="entry-content"><p>Bien. Escribimos, compilamos y corrimos nuestro primer programa. Pero es como bastante aburrido, ¿no? Vamos a ponerle onda: declaremos una variable (¡iupi! (¿?))</p>
-
-<figure class='code'><figcaption><span>ok.c (v2) </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">exit_status</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">return</span> <span class="n">exit_status</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Guau. Me la jugué :) Anoche no dormí porque me quedé debuggeando un error en este programa.</div>
   
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/08/20/variables/">Seguir leyendo&#8230;</a>
-    </footer>
-  
+  <p>Lo C Tutto es un tutorial introductorio al lenguaje de progmraación C y varias otras herramientas y conceptos útiles a la hora de desarrollar el trabajo práctico de Sistemas Operativos. La idea es avanzar despacio pero a pasos firmes, explicando todo lo que corresponda, y tomándose el tiempo que haga falta.</p>
 
+<p>Probablemente haya conceptos que me pase por alto, pero en principio la idea es explicar de modo tal que una persona que venga sin muchos conocimientos previos pueda entender qué es lo que se espera que haga en la materia.</p>
 
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/08/19/arrancando/">Arrancando</a></h1>
-    
-    
-      <p class="meta">
-        
+<p>Como de costumbre, cualquier error, sugerencia o agregado que quieran hacer, pueden contactarme por mail<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>, <a href="https://github.com/mgarciaisaia/tutorial-c/issues">levantar un issue en GitHub</a> o <a href="https://github.com/mgarciaisaia/tutorial-c/fork">enviarme un pull request</a>.</p>
+
+<p>Dejo el índice (el más nuevo primero):</p>
+
+<ul>
+
+<li><a href="/tutorial-c/blog/2013/08/20/variables/">Variables</a></li>
+
+<li><a href="/tutorial-c/blog/2013/08/19/arrancando/">Arrancando</a></li>
+
+</ul>
 
 
 
-
-
-
-
-
-  
-
-
-<time datetime="2013-08-19T21:59:00-03:00" pubdate data-updated="true">Aug 19<span>th</span>, 2013</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
-
-<figure class='code'><figcaption><span>ok.c </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Este es (aproximadamente) el programa más chico que podamos hacer en C. <code>main()</code> es la función que se ejecuta al ejecutar un programa C. En este caso, el prototipo de la función es <code>int main(void)</code>: nuestro programa no recibirá parámetros (<code>void</code>), y devolverá a quién lo ejecute un entero signado (<code>int</code>).</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/08/19/arrancando/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/tutorial-c/blog/archives">Blog Archives</a>
-    
-  </div>
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>mgarciaisaia [ arroba ] gmail [ punto ] com<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+</ol>
 </div>
+
+
+  
+    <footer>
+      <p class="meta">
+        
+  
+
+<span class="byline author vcard">Posted by <span class="fn">mgarciaisaia</span></span>
+
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-08-22T00:21:00-03:00" pubdate data-updated="true">Aug 22<span>nd</span>, 2013</time>
+        
+
+<span class="categories">
+  
+    <a class='category' href='/tutorial-c/blog/categories/lo-c-tutto/'>lo-c-tutto</a>
+  
+</span>
+
+
+      </p>
+      
+        <div class="sharing">
+  
+  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/lo-c-tutto/index.html" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/lo-c-tutto/index.html" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="small"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+      
+    </footer>
+  
+</article>
+
+</div>
+
 <aside class="sidebar">
   
     <section>
-  <h1>Acerca de&#8230;</h1>
+  <h1>Acerca de...</h1>
   <p>Pequeña introducción a C y otras herramientas necesarias para desarrollar el TP de Sistemas Operativos de la UTN FRBA</p>
 </section>
 <section>
@@ -212,7 +197,7 @@
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/sisoputnfrba">@sisoputnfrba</a> on GitHub
@@ -244,6 +229,7 @@
 
   
 </aside>
+
 
     </div>
   </div>
