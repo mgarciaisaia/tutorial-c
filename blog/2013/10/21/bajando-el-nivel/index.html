@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Bajando el nivel - C para Operativos</title>
+  <meta name="author" content="Sistemas Operativos @ UTN FRBA">
+
+  
+  <meta name="description" content="&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que lo pise con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel">
+  <link href="/tutorial-c/favicon.png" rel="icon">
+  <link href="/tutorial-c/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/tutorial-c/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
+  <script src="/tutorial-c/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/tutorial-c/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+<link rel="stylesheet" href="/tutorial-c/stylesheets/gh-fork-ribbon.css" />
+<!--[if IE]>
+<link rel="stylesheet" href="/tutorial-c/stylesheets/gh-fork-ribbon.ie.css" />
+<![endif]-->
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/tutorial-c/">C para Operativos</a></h1>
+  
+    <h2>Aprendiendo C para una cursada feliz de Sistemas Operativos</h2>
+  
+  </hgroup>
+
+<div class="github-fork-ribbon-wrapper right">
+	<div class="github-fork-ribbon">
+		<a href="https://github.com/mgarciaisaia/octopress">¡Forkeame!</a>
+	</div>
+</div>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/tutorial-c/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:mgarciaisaia.github.io/tutorial-c" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/tutorial-c/">Blog</a></li>
+  <li><a href="/tutorial-c/blog/archives">Archives</a></li>
+  <li><a href="/tutorial-c/lo-c-tutto/">Lo C Tutto</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Bajando El Nivel</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-21T01:19:00-03:00" pubdate data-updated="true">Oct 21<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;<!--more--></p>
+
+<p>What!? No way, papá. Por un cuatrimestre, las palabras &ldquo;objeto&rdquo; y &ldquo;Garbage Collector&rdquo; dejalas en la oficina, y VM = VirtualBox :)</p>
+
+<p>En C no hay objetos.</p>
+
+<p>Perdón si fui duro, pero es necesario: en C no hay objetos. Y no hay GC.</p>
+
+<p>&ldquo;Entonces, ¿qué es el 0?&rdquo;</p>
+
+<p>El 0 es una constante. Si recordás, en Arquitectura (bazinga) vimos que los números se representan en binario en la PC. Las variables de C son meras referencias a algún bloque de memroia, siendo el tipo de la variable el que anuncia qué tamaño tiene esa referencia.</p>
+
+<p>Digamos, esto es una memoria de 30 bytes<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> (éramos tan pobres):</p>
+
+<p><img src="http://mgarciaisaia.github.io/tutorial-c/assets/memoria-libre.png" alt="Una RAM de 30 bytes" /></p>
+
+<p>Esa es toda la memoria de esta computadora hipotética. Si en mi programa declaro una variable <code>int exit_status;</code>, podríamos pensarlo como que C hará algo así:</p>
+
+<p><img src="http://mgarciaisaia.github.io/tutorial-c/assets/memoria-reservada.png" alt="La RAM con una variable" /></p>
+
+<p>En algún lugar de la memoria (en este caso, a partir del byte 13), C reservó<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> unos bytes para nuestra variable ¿Cuántos bytes reservó? Eso depende del tipo de dato que le declaramos a la variable. Por definición, el tipo <code>int</code> equivale al <a href="http://es.wikipedia.org/wiki/Palabra_(inform%C3%A1tica)">tamaño de palabra del procesador</a>. Esto significa que en máquinas de 32 bits (como esta computadora hipotética, o las VMs de la cátedra, o la enorme mayoría de los Windows XP y Vista), un <code>int</code> va a ocupar 4 bytes (32 bits).</p>
+
+<p>Entonces, al hacer algo como <code>exit_status = 0;</code> (y sabiendo que <code>exit_status</code> es una variable entera de 4 bytes), el compilador sabe que tiene que hacer que los 4 bytes que están a partir del byte en que empieza <code>exit_status</code> valgan un 0. En Arquitectura aprendimos que los enteros con signo se representan usando el <a href="http://es.wikipedia.org/wiki/Complemento_a_dos">complemento a 2</a>, por lo que el 0 en 32 bits es simplemente <a href="http://es.wikipedia.org/wiki/Sistema_hexadecimal"><code>0x0000 0000</code></a> (4 bytes en 0).</p>
+
+<p>Entonces, ¿dónde está ese 0? <a href="http://es.wikipedia.org/wiki/Hard_code">Hardcodeado</a> en el binario. Compilar un programa es pedirle al compilador (<code>gcc</code> en nuestro caso) que traduzca todo ese C hermoso que escribimos en las instrucciones de Assembler que nuestro procesador tiene que ejecutar para que el código funcione con nuestro sistema operativo. De todas esas, alguna va a ser algo como <code>mov eax, 0x00000000</code><sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>: <strong>ese</strong> es tu 0.</p>
+
+<p>&ldquo;¿Y a mí cuál?&rdquo;</p>
+
+<p>Meh, no mucho. Sólo quería dejar en claro cómo funciona esto: C es una mini abstracción de la programación en Assembler, por lo que no está tan lejos. No tenés que ser un capo de Assembler para programar C<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup> (no necesitás saber Assembler, siquiera), pero tenés que tener un claro entendimiento de cómo funciona la computadora a bajo nivel para entender qué es lo que está haciendo tu código.</p>
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>La memoria de una PC tiene muchísimo más tamaño, pero dejame hacerla dibujable.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>C es un lenguaje. Decir &ldquo;C hizo tal cosa&rdquo; es medio vago: probablemente sea algo que hizo el compilador, o el sistema operativo, o alguna biblioteca más o menos estándar. Cuando decimos &ldquo;C hizo tal cosa&rdquo; es porque: a) no nos interesa mucho quién lo hizo (importa que lo hizo <em>otra persona</em>, y que es más o menos lo mismo para cualquier programa en C), o b) no sabemos quién lo hizo (y nos da fiaca averiguarlo, de momento).<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p>No se Assembler, creo que el parámetro no va en la misma línea que el <code>mov</code>, pero anda por ahí cerca.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<li id="fn:4">
+<p>Lo aclaré en la anterior: no se Assembler.<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Sistemas Operativos @ UTN FRBA</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-21T01:19:00-03:00" pubdate data-updated="true">Oct 21<span>st</span>, 2013</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/tutorial-c/blog/categories/lo-c-tutto/'>lo-c-tutto</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="small"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/tutorial-c/blog/2013/08/20/variables/" title="Previous Post: Variables">&laquo; Variables</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Acerca de...</h1>
+  <p>Pequeña introducción a C y otras herramientas necesarias para desarrollar el TP de Sistemas Operativos de la UTN FRBA</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Bajando El Nivel</a>
+      </li>
+    
+      <li class="post">
+        <a href="/tutorial-c/blog/2013/08/20/variables/">Variables</a>
+      </li>
+    
+      <li class="post">
+        <a href="/tutorial-c/blog/2013/08/19/arrancando/">Arrancando</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/sisoputnfrba">@sisoputnfrba</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'sisoputnfrba',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/tutorial-c/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2013 - Sistemas Operativos @ UTN FRBA -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
