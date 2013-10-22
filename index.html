@@ -9,7 +9,11 @@
   <meta name="author" content="mgarciaisaia">
 
   
-  <meta name="description" content="&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que lo pise con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias &hellip;">
+  <meta name="description" content="Vamos a hacer un programa en C, por lo que empezamos con una función: ok.c 1
+2
+3
+int main (void) { return 0;
+} Este es (aproximadamente) el programa &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -83,7 +87,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Bajando El Nivel</a></h1>
+      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/08/19/arrancando/">Arrancando</a></h1>
     
     
       <p class="meta">
@@ -99,18 +103,30 @@
   
 
 
-<time datetime="2013-10-21T01:19:00-03:00" pubdate data-updated="true">Oct 21<span>st</span>, 2013</time>
+<time datetime="2013-08-19T21:59:00-03:00" pubdate data-updated="true">Aug 19<span>th</span>, 2013</time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;</div>
+  <div class="entry-content"><p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
+
+<figure class='code'><figcaption><span>ok.c </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Este es (aproximadamente) el programa más chico que podamos hacer en C. <code>main()</code> es la función que se ejecuta al ejecutar un programa C. En este caso, el prototipo de la función es <code>int main(void)</code>: nuestro programa no recibirá parámetros (<code>void</code>), y devolverá a quién lo ejecute un entero signado (<code>int</code>).</div>
   
   
     <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Seguir leyendo&#8230;</a>
+      <a rel="full-article" href="/tutorial-c/blog/2013/08/19/arrancando/">Seguir leyendo&#8230;</a>
     </footer>
   
 
@@ -175,7 +191,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/08/19/arrancando/">Arrancando</a></h1>
+      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Bajando El Nivel</a></h1>
     
     
       <p class="meta">
@@ -191,30 +207,18 @@
   
 
 
-<time datetime="2013-08-19T21:59:00-03:00" pubdate data-updated="true">Aug 19<span>th</span>, 2013</time>
+<time datetime="2013-10-21T01:19:00-03:00" pubdate data-updated="true">Oct 21<span>st</span>, 2013</time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
-
-<figure class='code'><figcaption><span>ok.c </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Este es (aproximadamente) el programa más chico que podamos hacer en C. <code>main()</code> es la función que se ejecuta al ejecutar un programa C. En este caso, el prototipo de la función es <code>int main(void)</code>: nuestro programa no recibirá parámetros (<code>void</code>), y devolverá a quién lo ejecute un entero signado (<code>int</code>).</div>
+  <div class="entry-content"><p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;</div>
   
   
     <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/08/19/arrancando/">Seguir leyendo&#8230;</a>
+      <a rel="full-article" href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Seguir leyendo&#8230;</a>
     </footer>
   
 
