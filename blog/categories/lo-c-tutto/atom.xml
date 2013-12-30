@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: lo-c-tutto | C para Operativos]]></title>
-  <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/categories/lo-c-tutto/atom.xml" rel="self"/>
-  <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/"/>
-  <updated>2013-12-30T02:32:43-03:00</updated>
-  <id>http://mgarciaisaia.github.io//mgarciaisaia@github/</id>
+  <link href="http://mgarciaisaia.github.io/tutorial-c/blog/categories/lo-c-tutto/atom.xml" rel="self"/>
+  <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
+  <updated>2013-12-30T02:35:27-03:00</updated>
+  <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Bajando el nivel]]></title>
-    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/10/21/bajando-el-nivel/"/>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel/"/>
     <updated>2013-10-21T01:19:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/10/21/bajando-el-nivel</id>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel</id>
     <content type="html"><![CDATA[<p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;<!--more--></p>
 
 <p>What!? No way, papá. Por un cuatrimestre, las palabras &ldquo;objeto&rdquo; y &ldquo;Garbage Collector&rdquo; dejalas en la oficina, y VM = VirtualBox :)</p>
@@ -66,9 +66,9 @@
   
   <entry>
     <title type="html"><![CDATA[Variables]]></title>
-    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/20/variables/"/>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/20/variables/"/>
     <updated>2013-08-20T01:21:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/20/variables</id>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/20/variables</id>
     <content type="html"><![CDATA[<p>Bien. Escribimos, compilamos y corrimos nuestro primer programa. Pero es como bastante aburrido, ¿no? Vamos a ponerle onda: declaremos una variable (¡iupi! (¿?))</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>ok.c (v2) </span></figcaption>
@@ -248,9 +248,9 @@ Y, ¿qué pasó con el 0? Se perdió. El 0 sigue existiendo y valiendo 0, como s
   
   <entry>
     <title type="html"><![CDATA[Arrancando]]></title>
-    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/19/arrancando/"/>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando/"/>
     <updated>2013-08-19T21:59:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/19/arrancando</id>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando</id>
     <content type="html"><![CDATA[<p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'><figcaption><span>ok.c </span></figcaption>

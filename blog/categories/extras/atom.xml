@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: extras | C para Operativos]]></title>
-  <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/categories/extras/atom.xml" rel="self"/>
-  <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/"/>
-  <updated>2013-12-30T02:32:43-03:00</updated>
-  <id>http://mgarciaisaia.github.io//mgarciaisaia@github/</id>
+  <link href="http://mgarciaisaia.github.io/tutorial-c/blog/categories/extras/atom.xml" rel="self"/>
+  <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
+  <updated>2013-12-30T02:35:27-03:00</updated>
+  <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[inotify]]></title>
-    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/12/30/inotify/"/>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify/"/>
     <updated>2013-12-30T02:09:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/12/30/inotify</id>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify</id>
     <content type="html"><![CDATA[<p><blockquote><p><strong>Disclaimer</strong>: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &ldquo;in&rdquo; que se te ocurra. Su espíritu es simplemente poder referenciar acá cada vez que surja un inconveniente con la herramienta, para no repetir lo que escribo siempre, y para cada vez dar una mejor respuesta. Todo aporte será más que bienvenido.</p></blockquote></p>
 
 <p>El mundo real apesta. Existe el habmbre, la capa de ozono se debilita, y el software obra de maneras misteriosas.</p>

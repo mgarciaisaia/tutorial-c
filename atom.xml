@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[C para Operativos]]></title>
-  <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/atom.xml" rel="self"/>
-  <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/"/>
-  <updated>2013-12-30T02:32:43-03:00</updated>
-  <id>http://mgarciaisaia.github.io//mgarciaisaia@github/</id>
+  <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
+  <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
+  <updated>2013-12-30T02:35:27-03:00</updated>
+  <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[inotify]]></title>
-    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/12/30/inotify/"/>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify/"/>
     <updated>2013-12-30T02:09:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/12/30/inotify</id>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify</id>
     <content type="html"><![CDATA[<blockquote><p>**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &#8220;in&#8221; que se te ocurra. Su espíritu es simplemente poder referenciar acá cada vez que surja un inconveniente con la herramienta, para no repetir lo que escribo siempre, y para cada vez dar una mejor respuesta. Todo aporte será más que bienvenido.</p></blockquote>
 
 
@@ -58,9 +58,9 @@ IN_OPEN           File was opened (*).
   
   <entry>
     <title type="html"><![CDATA[Bajando el nivel]]></title>
-    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/10/21/bajando-el-nivel/"/>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel/"/>
     <updated>2013-10-21T01:19:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/10/21/bajando-el-nivel</id>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel</id>
     <content type="html"><![CDATA[<p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;<!--more--></p>
 
 <p>What!? No way, papá. Por un cuatrimestre, las palabras &ldquo;objeto&rdquo; y &ldquo;Garbage Collector&rdquo; dejalas en la oficina, y VM = VirtualBox :)</p>
@@ -75,11 +75,11 @@ IN_OPEN           File was opened (*).
 
 <p>Digamos, esto es una memoria de 30 bytes<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> (éramos tan pobres):</p>
 
-<p><img src="http://mgarciaisaia.github.io//mgarciaisaia@github/assets/memoria-libre.png" alt="Una RAM de 30 bytes" /></p>
+<p><img src="http://mgarciaisaia.github.io/tutorial-c/assets/memoria-libre.png" alt="Una RAM de 30 bytes" /></p>
 
 <p>Esa es toda la memoria de esta computadora hipotética. Si en mi programa declaro una variable <code>int exit_status;</code>, podríamos pensarlo como que C hará algo así:</p>
 
-<p><img src="http://mgarciaisaia.github.io//mgarciaisaia@github/assets/memoria-reservada.png" alt="La RAM con una variable" /></p>
+<p><img src="http://mgarciaisaia.github.io/tutorial-c/assets/memoria-reservada.png" alt="La RAM con una variable" /></p>
 
 <p>En algún lugar de la memoria (en este caso, a partir del byte 13), C reservó<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> unos bytes para nuestra variable ¿Cuántos bytes reservó? Eso depende del tipo de dato que le declaramos a la variable. Por definición, el tipo <code>int</code> equivale al <a href="http://es.wikipedia.org/wiki/Palabra_(inform%C3%A1tica)">tamaño de palabra del procesador</a>. Esto significa que en máquinas de 32 bits (como esta computadora hipotética, o las VMs de la cátedra, o la enorme mayoría de los Windows XP y Vista), un <code>int</code> va a ocupar 4 bytes (32 bits).</p>
 
@@ -109,9 +109,9 @@ IN_OPEN           File was opened (*).
   
   <entry>
     <title type="html"><![CDATA[Variables]]></title>
-    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/20/variables/"/>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/20/variables/"/>
     <updated>2013-08-20T01:21:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/20/variables</id>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/20/variables</id>
     <content type="html"><![CDATA[<p>Bien. Escribimos, compilamos y corrimos nuestro primer programa. Pero es como bastante aburrido, ¿no? Vamos a ponerle onda: declaremos una variable (¡iupi! (¿?))</p>
 
 <figure class='code'><figcaption><span>ok.c (v2) </span></figcaption>
@@ -280,9 +280,9 @@ Y, ¿qué pasó con el 0? Se perdió. El 0 sigue existiendo y valiendo 0, como s
   
   <entry>
     <title type="html"><![CDATA[Arrancando]]></title>
-    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/19/arrancando/"/>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando/"/>
     <updated>2013-08-19T21:59:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/19/arrancando</id>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando</id>
     <content type="html"><![CDATA[<p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
 
 <figure class='code'><figcaption><span>ok.c </span></figcaption>
