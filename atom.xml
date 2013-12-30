@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[C para Operativos]]></title>
-  <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
-  <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2013-10-22T01:02:22-03:00</updated>
-  <id>http://mgarciaisaia.github.io/tutorial-c/</id>
+  <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/atom.xml" rel="self"/>
+  <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/"/>
+  <updated>2013-12-30T02:32:43-03:00</updated>
+  <id>http://mgarciaisaia.github.io//mgarciaisaia@github/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
     
@@ -14,10 +14,53 @@
 
   
   <entry>
+    <title type="html"><![CDATA[inotify]]></title>
+    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/12/30/inotify/"/>
+    <updated>2013-12-30T02:09:00-03:00</updated>
+    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/12/30/inotify</id>
+    <content type="html"><![CDATA[<blockquote><p>**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &#8220;in&#8221; que se te ocurra. Su espíritu es simplemente poder referenciar acá cada vez que surja un inconveniente con la herramienta, para no repetir lo que escribo siempre, y para cada vez dar una mejor respuesta. Todo aporte será más que bienvenido.</p></blockquote>
+
+
+<p>El mundo real apesta. Existe el habmbre, la capa de ozono se debilita, y el software obra de maneras misteriosas.</p>
+
+<p><code>inotify</code> es una API de Linux que nos permite monitorear cambios en un archivo o directorio. En criollo, es un <em>duende</em> al que le pedimos que levante la mano cuando ocurre algún evento que a nosotros nos interese, como la creación de un archivo en un directorio, la eliminación de un archivo o una escritura.<!--more--></p>
+
+<p>Como es funcionalidad que provee el kernel, claramente está bien implementada: nada de tener al duende haciendo <code>ls</code> cada medio segundo para que avise al encontrar diferencias entre los últimos dos <code>ls</code>, sino que existe un modelo de eventos, y nosotros podemos especificar aquellos que nos interesa que se nos notifiquen (de ahí el 90% del nombre, je).</p>
+
+<p>El otro 10% es la i. <code>inotify</code> es funcionalidad que provee el kernel, por lo que trabaja al nivel al que el kernel conoce a los archivos, el File Control Block: los inodos. Al atender las diferentes llamadas al sistema (syscalls), el kernel dispara también las notificaciones correspondientes.</p>
+
+<p>Los eventos por los que podemos ser notificados están explicados en el man:</p>
+
+<pre><code>IN_ACCESS         File was accessed (read) (*).
+IN_ATTRIB         Metadata changed, e.g., permissions, timestamps, extended attributes,
+                    link count (since Linux 2.6.25), UID, GID, etc. (*).
+IN_CLOSE_WRITE    File opened for writing was closed (*).
+IN_CLOSE_NOWRITE  File not opened for writing was closed (*).
+IN_CREATE         File/directory created in watched directory (*).
+IN_DELETE         File/directory deleted from watched directory (*).
+IN_DELETE_SELF    Watched file/directory was itself deleted.
+IN_MODIFY         File was modified (*).
+IN_MOVE_SELF      Watched file/directory was itself moved.
+IN_MOVED_FROM     File moved out of watched directory (*).
+IN_MOVED_TO       File moved into watched directory (*).
+IN_OPEN           File was opened (*).
+</code></pre>
+
+<p>El problema ocurre con el mundo real. Dado que en ningún lugar está definido el contrato de cómo un programa tiene que implementar sus funcionalidades (por comunes que sean, como la actualización de un archivo), cada aplicación en particular puede implementar un conjunto de llamadas al sistema distinto para hacerlo. Si a esto sumamos la antiguedad y diversidad de orígenes de los editores de texto que se usan en Linux (algunos datan de los 70, pensados para usar en mainframes, mientras que otros son más recientes y apuntan a optimizar acceso a disco, o uso de memoria, o tiempo de respuesta), el panorama es realmente complejo: algunos editores de texto simplemente actualizarán los bloques de datos que hayan cambiado, mientras que otros optarán por enfoques más extraños.</p>
+
+<p>Un caso conocido es el de <code>nano</code>. Al grabar un archivo pequeño (archivos menores a 1 bloque &ndash; 4kb), <code>nano</code> optará por vaciar el archivo (truncarlo a 0 bytes) y luego grabar su contenido, por lo que <code>inotify</code> disparará dos eventos: <code>IN_MODIFIY</code> (&ldquo;el archivo fue vaciado&rdquo;), y luego otro <code>IN_MODIFY</code> (&ldquo;se escribió el contenido del archivo&rdquo;).</p>
+
+<p><code>vim</code>, por otro lado, mantiene un archivo de backup mientras vamos trabajando, para ahorrarnos algún dolor de cabeza si se nos llegara a apagar mal la máquina. Ahora, como ya mantiene ese archivo de backup, a <code>vim</code> le es más facil, cuando le pedimos grabar un archivo, reemplazar el archivo que existía por el backup actualizado, y listo. El resultado de esto es un set de llamadas al sistema bastante distinto al de <code>nano</code>: primero elimina el archivo original, y luego renombra el backup para que ocupe la ruta en que se encontraba el original. El problema con esto no sólo es que no hay eventos <code>IN_MODIFY</code>, sino que, como dijimos, <code>inotify</code> conoce inodos: el archivo del backup, por más que pase a llamarse igual que el original, es un inodo distinto, por lo que <code>inotify</code> dejará de detectar eventos sobre el archivo que se encuentra en el path que habíamos especificado.</p>
+
+<p>&ldquo;Solucionar&rdquo; estos problemas requiere tener en cuenta el comportamiento de cada editor y reaccionar de manera acorde cuando se detectan los eventos.</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Bajando el nivel]]></title>
-    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel/"/>
+    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/10/21/bajando-el-nivel/"/>
     <updated>2013-10-21T01:19:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel</id>
+    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/10/21/bajando-el-nivel</id>
     <content type="html"><![CDATA[<p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;<!--more--></p>
 
 <p>What!? No way, papá. Por un cuatrimestre, las palabras &ldquo;objeto&rdquo; y &ldquo;Garbage Collector&rdquo; dejalas en la oficina, y VM = VirtualBox :)</p>
@@ -32,11 +75,11 @@
 
 <p>Digamos, esto es una memoria de 30 bytes<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> (éramos tan pobres):</p>
 
-<p><img src="http://mgarciaisaia.github.io/tutorial-c/assets/memoria-libre.png" alt="Una RAM de 30 bytes" /></p>
+<p><img src="http://mgarciaisaia.github.io//mgarciaisaia@github/assets/memoria-libre.png" alt="Una RAM de 30 bytes" /></p>
 
 <p>Esa es toda la memoria de esta computadora hipotética. Si en mi programa declaro una variable <code>int exit_status;</code>, podríamos pensarlo como que C hará algo así:</p>
 
-<p><img src="http://mgarciaisaia.github.io/tutorial-c/assets/memoria-reservada.png" alt="La RAM con una variable" /></p>
+<p><img src="http://mgarciaisaia.github.io//mgarciaisaia@github/assets/memoria-reservada.png" alt="La RAM con una variable" /></p>
 
 <p>En algún lugar de la memoria (en este caso, a partir del byte 13), C reservó<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> unos bytes para nuestra variable ¿Cuántos bytes reservó? Eso depende del tipo de dato que le declaramos a la variable. Por definición, el tipo <code>int</code> equivale al <a href="http://es.wikipedia.org/wiki/Palabra_(inform%C3%A1tica)">tamaño de palabra del procesador</a>. Esto significa que en máquinas de 32 bits (como esta computadora hipotética, o las VMs de la cátedra, o la enorme mayoría de los Windows XP y Vista), un <code>int</code> va a ocupar 4 bytes (32 bits).</p>
 
@@ -66,9 +109,9 @@
   
   <entry>
     <title type="html"><![CDATA[Variables]]></title>
-    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/20/variables/"/>
+    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/20/variables/"/>
     <updated>2013-08-20T01:21:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/20/variables</id>
+    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/20/variables</id>
     <content type="html"><![CDATA[<p>Bien. Escribimos, compilamos y corrimos nuestro primer programa. Pero es como bastante aburrido, ¿no? Vamos a ponerle onda: declaremos una variable (¡iupi! (¿?))</p>
 
 <figure class='code'><figcaption><span>ok.c (v2) </span></figcaption>
@@ -237,9 +280,9 @@ Y, ¿qué pasó con el 0? Se perdió. El 0 sigue existiendo y valiendo 0, como s
   
   <entry>
     <title type="html"><![CDATA[Arrancando]]></title>
-    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando/"/>
+    <link href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/19/arrancando/"/>
     <updated>2013-08-19T21:59:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando</id>
+    <id>http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/08/19/arrancando</id>
     <content type="html"><![CDATA[<p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
 
 <figure class='code'><figcaption><span>ok.c </span></figcaption>

@@ -9,11 +9,7 @@
   <meta name="author" content="mgarciaisaia">
 
   
-  <meta name="description" content="Vamos a hacer un programa en C, por lo que empezamos con una función: ok.c 1
-2
-3
-int main (void) { return 0;
-} Este es (aproximadamente) el programa &hellip;">
+  <meta name="description" content="**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &#8220;in&#8221; que se te ocurra. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -22,21 +18,21 @@ int main (void) { return 0;
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c">
-  <link href="/tutorial-c/favicon.png" rel="icon">
-  <link href="/tutorial-c/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/tutorial-c/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
-  <script src="/tutorial-c/javascripts/modernizr-2.0.js"></script>
+  <link rel="canonical" href="http://mgarciaisaia.github.io//mgarciaisaia@github">
+  <link href="/github/favicon.png" rel="icon">
+  <link href="/github/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/github/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
+  <script src="/github/javascripts/modernizr-2.0.js"></script>
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
-  <script src="/tutorial-c/javascripts/octopress.js" type="text/javascript"></script>
+  <script src="/github/javascripts/octopress.js" type="text/javascript"></script>
   <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 
-<link rel="stylesheet" href="/tutorial-c/stylesheets/gh-fork-ribbon.css" />
+<link rel="stylesheet" href="/github/stylesheets/gh-fork-ribbon.css" />
 <!--[if IE]>
-<link rel="stylesheet" href="/tutorial-c/stylesheets/gh-fork-ribbon.ie.css" />
+<link rel="stylesheet" href="/github/stylesheets/gh-fork-ribbon.ie.css" />
 <![endif]-->
 
   
@@ -45,7 +41,7 @@ int main (void) { return 0;
 
 <body   >
   <header role="banner"><hgroup>
-  <h1><a href="/tutorial-c/">C para Operativos</a></h1>
+  <h1><a href="/github/">C para Operativos</a></h1>
   
     <h2>Aprendiendo C para una cursada feliz de Sistemas Operativos</h2>
   
@@ -59,21 +55,21 @@ int main (void) { return 0;
 
 </header>
   <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  <li><a href="/tutorial-c/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  <li><a href="/github/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
   
 </ul>
   
 <form action="http://google.com/search" method="get">
   <fieldset role="search">
-    <input type="hidden" name="q" value="site:mgarciaisaia.github.io/tutorial-c" />
+    <input type="hidden" name="q" value="site:mgarciaisaia.github.io//mgarciaisaia@github" />
     <input class="search" type="text" name="q" results="0" placeholder="Search"/>
   </fieldset>
 </form>
   
 <ul class="main-navigation">
-  <li><a href="/tutorial-c/">Blog</a></li>
-  <li><a href="/tutorial-c/blog/archives">Archives</a></li>
-  <li><a href="/tutorial-c/lo-c-tutto/">Lo C Tutto</a></li>
+  <li><a href="/github/">Blog</a></li>
+  <li><a href="/github/blog/archives">Archives</a></li>
+  <li><a href="/github/lo-c-tutto/">Lo C Tutto</a></li>
 </ul>
 
 </nav>
@@ -87,7 +83,7 @@ int main (void) { return 0;
       
   <header>
     
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/08/19/arrancando/">Arrancando</a></h1>
+      <h1 class="entry-title"><a href="/github/blog/2013/12/30/inotify/">Inotify</a></h1>
     
     
       <p class="meta">
@@ -103,30 +99,23 @@ int main (void) { return 0;
   
 
 
-<time datetime="2013-08-19T21:59:00-03:00" pubdate data-updated="true">Aug 19<span>th</span>, 2013</time>
+<time datetime="2013-12-30T02:09:00-03:00" pubdate data-updated="true">Dec 30<span>th</span>, 2013</time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
-
-<figure class='code'><figcaption><span>ok.c </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+  <div class="entry-content"><blockquote><p>**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &#8220;in&#8221; que se te ocurra. Su espíritu es simplemente poder referenciar acá cada vez que surja un inconveniente con la herramienta, para no repetir lo que escribo siempre, y para cada vez dar una mejor respuesta. Todo aporte será más que bienvenido.</p></blockquote>
 
 
-<p>Este es (aproximadamente) el programa más chico que podamos hacer en C. <code>main()</code> es la función que se ejecuta al ejecutar un programa C. En este caso, el prototipo de la función es <code>int main(void)</code>: nuestro programa no recibirá parámetros (<code>void</code>), y devolverá a quién lo ejecute un entero signado (<code>int</code>).</div>
+<p>El mundo real apesta. Existe el habmbre, la capa de ozono se debilita, y el software obra de maneras misteriosas.</p>
+
+<p><code>inotify</code> es una API de Linux que nos permite monitorear cambios en un archivo o directorio. En criollo, es un <em>duende</em> al que le pedimos que levante la mano cuando ocurre algún evento que a nosotros nos interese, como la creación de un archivo en un directorio, la eliminación de un archivo o una escritura.</div>
   
   
     <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/08/19/arrancando/">Seguir leyendo&#8230;</a>
+      <a rel="full-article" href="/github/blog/2013/12/30/inotify/">Seguir leyendo&#8230;</a>
     </footer>
   
 
@@ -138,7 +127,46 @@ int main (void) { return 0;
       
   <header>
     
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/08/20/variables/">Variables</a></h1>
+      <h1 class="entry-title"><a href="/github/blog/2013/10/21/bajando-el-nivel/">Bajando El Nivel</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-21T01:19:00-03:00" pubdate data-updated="true">Oct 21<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/github/blog/2013/10/21/bajando-el-nivel/">Seguir leyendo&#8230;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/github/blog/2013/08/20/variables/">Variables</a></h1>
     
     
       <p class="meta">
@@ -179,7 +207,7 @@ int main (void) { return 0;
   
   
     <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/08/20/variables/">Seguir leyendo&#8230;</a>
+      <a rel="full-article" href="/github/blog/2013/08/20/variables/">Seguir leyendo&#8230;</a>
     </footer>
   
 
@@ -191,7 +219,7 @@ int main (void) { return 0;
       
   <header>
     
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Bajando El Nivel</a></h1>
+      <h1 class="entry-title"><a href="/github/blog/2013/08/19/arrancando/">Arrancando</a></h1>
     
     
       <p class="meta">
@@ -207,18 +235,30 @@ int main (void) { return 0;
   
 
 
-<time datetime="2013-10-21T01:19:00-03:00" pubdate data-updated="true">Oct 21<span>st</span>, 2013</time>
+<time datetime="2013-08-19T21:59:00-03:00" pubdate data-updated="true">Aug 19<span>th</span>, 2013</time>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;</div>
+  <div class="entry-content"><p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
+
+<figure class='code'><figcaption><span>ok.c </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Este es (aproximadamente) el programa más chico que podamos hacer en C. <code>main()</code> es la función que se ejecuta al ejecutar un programa C. En este caso, el prototipo de la función es <code>int main(void)</code>: nuestro programa no recibirá parámetros (<code>void</code>), y devolverá a quién lo ejecute un entero signado (<code>int</code>).</div>
   
   
     <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Seguir leyendo&#8230;</a>
+      <a rel="full-article" href="/github/blog/2013/08/19/arrancando/">Seguir leyendo&#8230;</a>
     </footer>
   
 
@@ -227,7 +267,7 @@ int main (void) { return 0;
   
   <div class="pagination">
     
-    <a href="/tutorial-c/blog/archives">Blog Archives</a>
+    <a href="/github/blog/archives">Blog Archives</a>
     
   </div>
 </div>
@@ -242,15 +282,19 @@ int main (void) { return 0;
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Bajando El Nivel</a>
+        <a href="/github/blog/2013/12/30/inotify/">Inotify</a>
       </li>
     
       <li class="post">
-        <a href="/tutorial-c/blog/2013/08/20/variables/">Variables</a>
+        <a href="/github/blog/2013/10/21/bajando-el-nivel/">Bajando El Nivel</a>
       </li>
     
       <li class="post">
-        <a href="/tutorial-c/blog/2013/08/19/arrancando/">Arrancando</a>
+        <a href="/github/blog/2013/08/20/variables/">Variables</a>
+      </li>
+    
+      <li class="post">
+        <a href="/github/blog/2013/08/19/arrancando/">Arrancando</a>
       </li>
     
   </ul>
@@ -282,7 +326,7 @@ int main (void) { return 0;
         });
     });
   </script>
-  <script src="/tutorial-c/javascripts/github.js" type="text/javascript"> </script>
+  <script src="/github/javascripts/github.js" type="text/javascript"> </script>
 </section>
 
 

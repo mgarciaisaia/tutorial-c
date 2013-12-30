@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Bajando el nivel - C para Operativos</title>
+  <title>inotify - C para Operativos</title>
   <meta name="author" content="mgarciaisaia">
 
   
-  <meta name="description" content="&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que lo pise con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias &hellip;">
+  <meta name="description" content="**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &#8220;in&#8221; que se te ocurra. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/10/21/bajando-el-nivel">
+  <link rel="canonical" href="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/12/30/inotify">
   <link href="/github/favicon.png" rel="icon">
   <link href="/github/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/github/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
@@ -80,7 +80,7 @@
   
   <header>
     
-      <h1 class="entry-title">Bajando El Nivel</h1>
+      <h1 class="entry-title">Inotify</h1>
     
     
       <p class="meta">
@@ -96,56 +96,48 @@
   
 
 
-<time datetime="2013-10-21T01:19:00-03:00" pubdate data-updated="true">Oct 21<span>st</span>, 2013</time>
+<time datetime="2013-12-30T02:09:00-03:00" pubdate data-updated="true">Dec 30<span>th</span>, 2013</time>
         
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;<!--more--></p>
+<div class="entry-content"><blockquote><p>**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &#8220;in&#8221; que se te ocurra. Su espíritu es simplemente poder referenciar acá cada vez que surja un inconveniente con la herramienta, para no repetir lo que escribo siempre, y para cada vez dar una mejor respuesta. Todo aporte será más que bienvenido.</p></blockquote>
 
-<p>What!? No way, papá. Por un cuatrimestre, las palabras &ldquo;objeto&rdquo; y &ldquo;Garbage Collector&rdquo; dejalas en la oficina, y VM = VirtualBox :)</p>
 
-<p>En C no hay objetos.</p>
+<p>El mundo real apesta. Existe el habmbre, la capa de ozono se debilita, y el software obra de maneras misteriosas.</p>
 
-<p>Perdón si fui duro, pero es necesario: en C no hay objetos. Y no hay GC.</p>
+<p><code>inotify</code> es una API de Linux que nos permite monitorear cambios en un archivo o directorio. En criollo, es un <em>duende</em> al que le pedimos que levante la mano cuando ocurre algún evento que a nosotros nos interese, como la creación de un archivo en un directorio, la eliminación de un archivo o una escritura.<!--more--></p>
 
-<p>&ldquo;Entonces, ¿qué es el 0?&rdquo;</p>
+<p>Como es funcionalidad que provee el kernel, claramente está bien implementada: nada de tener al duende haciendo <code>ls</code> cada medio segundo para que avise al encontrar diferencias entre los últimos dos <code>ls</code>, sino que existe un modelo de eventos, y nosotros podemos especificar aquellos que nos interesa que se nos notifiquen (de ahí el 90% del nombre, je).</p>
 
-<p>El 0 es una constante. Si recordás, en Arquitectura (bazinga) vimos que los números se representan en binario en la PC. Las variables de C son meras referencias a algún bloque de memroia, siendo el tipo de la variable el que anuncia qué tamaño tiene esa referencia.</p>
+<p>El otro 10% es la i. <code>inotify</code> es funcionalidad que provee el kernel, por lo que trabaja al nivel al que el kernel conoce a los archivos, el File Control Block: los inodos. Al atender las diferentes llamadas al sistema (syscalls), el kernel dispara también las notificaciones correspondientes.</p>
 
-<p>Digamos, esto es una memoria de 30 bytes<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> (éramos tan pobres):</p>
+<p>Los eventos por los que podemos ser notificados están explicados en el man:</p>
 
-<p><img src="http://mgarciaisaia.github.io//mgarciaisaia@github/assets/memoria-libre.png" alt="Una RAM de 30 bytes" /></p>
+<pre><code>IN_ACCESS         File was accessed (read) (*).
+IN_ATTRIB         Metadata changed, e.g., permissions, timestamps, extended attributes,
+                    link count (since Linux 2.6.25), UID, GID, etc. (*).
+IN_CLOSE_WRITE    File opened for writing was closed (*).
+IN_CLOSE_NOWRITE  File not opened for writing was closed (*).
+IN_CREATE         File/directory created in watched directory (*).
+IN_DELETE         File/directory deleted from watched directory (*).
+IN_DELETE_SELF    Watched file/directory was itself deleted.
+IN_MODIFY         File was modified (*).
+IN_MOVE_SELF      Watched file/directory was itself moved.
+IN_MOVED_FROM     File moved out of watched directory (*).
+IN_MOVED_TO       File moved into watched directory (*).
+IN_OPEN           File was opened (*).
+</code></pre>
 
-<p>Esa es toda la memoria de esta computadora hipotética. Si en mi programa declaro una variable <code>int exit_status;</code>, podríamos pensarlo como que C hará algo así:</p>
+<p>El problema ocurre con el mundo real. Dado que en ningún lugar está definido el contrato de cómo un programa tiene que implementar sus funcionalidades (por comunes que sean, como la actualización de un archivo), cada aplicación en particular puede implementar un conjunto de llamadas al sistema distinto para hacerlo. Si a esto sumamos la antiguedad y diversidad de orígenes de los editores de texto que se usan en Linux (algunos datan de los 70, pensados para usar en mainframes, mientras que otros son más recientes y apuntan a optimizar acceso a disco, o uso de memoria, o tiempo de respuesta), el panorama es realmente complejo: algunos editores de texto simplemente actualizarán los bloques de datos que hayan cambiado, mientras que otros optarán por enfoques más extraños.</p>
 
-<p><img src="http://mgarciaisaia.github.io//mgarciaisaia@github/assets/memoria-reservada.png" alt="La RAM con una variable" /></p>
+<p>Un caso conocido es el de <code>nano</code>. Al grabar un archivo pequeño (archivos menores a 1 bloque &ndash; 4kb), <code>nano</code> optará por vaciar el archivo (truncarlo a 0 bytes) y luego grabar su contenido, por lo que <code>inotify</code> disparará dos eventos: <code>IN_MODIFIY</code> (&ldquo;el archivo fue vaciado&rdquo;), y luego otro <code>IN_MODIFY</code> (&ldquo;se escribió el contenido del archivo&rdquo;).</p>
 
-<p>En algún lugar de la memoria (en este caso, a partir del byte 13), C reservó<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> unos bytes para nuestra variable ¿Cuántos bytes reservó? Eso depende del tipo de dato que le declaramos a la variable. Por definición, el tipo <code>int</code> equivale al <a href="http://es.wikipedia.org/wiki/Palabra_(inform%C3%A1tica)">tamaño de palabra del procesador</a>. Esto significa que en máquinas de 32 bits (como esta computadora hipotética, o las VMs de la cátedra, o la enorme mayoría de los Windows XP y Vista), un <code>int</code> va a ocupar 4 bytes (32 bits).</p>
+<p><code>vim</code>, por otro lado, mantiene un archivo de backup mientras vamos trabajando, para ahorrarnos algún dolor de cabeza si se nos llegara a apagar mal la máquina. Ahora, como ya mantiene ese archivo de backup, a <code>vim</code> le es más facil, cuando le pedimos grabar un archivo, reemplazar el archivo que existía por el backup actualizado, y listo. El resultado de esto es un set de llamadas al sistema bastante distinto al de <code>nano</code>: primero elimina el archivo original, y luego renombra el backup para que ocupe la ruta en que se encontraba el original. El problema con esto no sólo es que no hay eventos <code>IN_MODIFY</code>, sino que, como dijimos, <code>inotify</code> conoce inodos: el archivo del backup, por más que pase a llamarse igual que el original, es un inodo distinto, por lo que <code>inotify</code> dejará de detectar eventos sobre el archivo que se encuentra en el path que habíamos especificado.</p>
 
-<p>Entonces, al hacer algo como <code>exit_status = 0;</code> (y sabiendo que <code>exit_status</code> es una variable entera de 4 bytes), el compilador sabe que tiene que hacer que los 4 bytes que están a partir del byte en que empieza <code>exit_status</code> valgan un 0. En Arquitectura aprendimos que los enteros con signo se representan usando el <a href="http://es.wikipedia.org/wiki/Complemento_a_dos">complemento a 2</a>, por lo que el 0 en 32 bits es simplemente <a href="http://es.wikipedia.org/wiki/Sistema_hexadecimal"><code>0x0000 0000</code></a> (4 bytes en 0).</p>
-
-<p>Entonces, ¿dónde está ese 0? <a href="http://es.wikipedia.org/wiki/Hard_code">Hardcodeado</a> en el binario. Compilar un programa es pedirle al compilador (<code>gcc</code> en nuestro caso) que traduzca todo ese C hermoso que escribimos en las instrucciones de Assembler que nuestro procesador tiene que ejecutar para que el código funcione con nuestro sistema operativo. De todas esas, alguna va a ser algo como <code>mov eax, 0x00000000</code><sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>: <strong>ese</strong> es tu 0.</p>
-
-<p>&ldquo;¿Y a mí cuál?&rdquo;</p>
-
-<p>Meh, no mucho. Sólo quería dejar en claro cómo funciona esto: C es una mini abstracción de la programación en Assembler, por lo que no está tan lejos. No tenés que ser un capo de Assembler para programar C<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup> (no necesitás saber Assembler, siquiera), pero tenés que tener un claro entendimiento de cómo funciona la computadora a bajo nivel para entender qué es lo que está haciendo tu código.</p>
-<div class="footnotes">
-<hr/>
-<ol>
-<li id="fn:1">
-<p>La memoria de una PC tiene muchísimo más tamaño, pero dejame hacerla dibujable.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
-<li id="fn:2">
-<p>C es un lenguaje. Decir &ldquo;C hizo tal cosa&rdquo; es medio vago: probablemente sea algo que hizo el compilador, o el sistema operativo, o alguna biblioteca más o menos estándar. Cuando decimos &ldquo;C hizo tal cosa&rdquo; es porque: a) no nos interesa mucho quién lo hizo (importa que lo hizo <em>otra persona</em>, y que es más o menos lo mismo para cualquier programa en C), o b) no sabemos quién lo hizo (y nos da fiaca averiguarlo, de momento).<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
-<li id="fn:3">
-<p>No se Assembler, creo que el parámetro no va en la misma línea que el <code>mov</code>, pero anda por ahí cerca.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
-<li id="fn:4">
-<p>Lo aclaré en la anterior: no se Assembler.<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
-</ol>
-</div>
-
+<p>&ldquo;Solucionar&rdquo; estos problemas requiere tener en cuenta el comportamiento de cada editor y reaccionar de manera acorde cuando se detectan los eventos.</p>
 </div>
 
 
@@ -168,12 +160,12 @@
   
 
 
-<time datetime="2013-10-21T01:19:00-03:00" pubdate data-updated="true">Oct 21<span>st</span>, 2013</time>
+<time datetime="2013-12-30T02:09:00-03:00" pubdate data-updated="true">Dec 30<span>th</span>, 2013</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/github/blog/categories/lo-c-tutto/'>lo-c-tutto</a>
+    <a class='category' href='/github/blog/categories/extras/'>extras</a>
   
 </span>
 
@@ -182,7 +174,7 @@
     
       <div class="sharing">
   
-  <a href="/github//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/10/21/bajando-el-nivel/" data-via="" data-counturl="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/10/21/bajando-el-nivel/" >Tweet</a>
+  <a href="/github//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/12/30/inotify/" data-via="" data-counturl="http://mgarciaisaia.github.io//mgarciaisaia@github/blog/2013/12/30/inotify/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="small"></div>
@@ -195,10 +187,8 @@
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/github/blog/2013/08/20/variables/" title="Previous Post: Variables">&laquo; Variables</a>
+        <a class="basic-alignment left" href="/github/blog/2013/10/21/bajando-el-nivel/" title="Previous Post: Bajando el nivel">&laquo; Bajando el nivel</a>
       
-      
-        <a class="basic-alignment right" href="/github/blog/2013/12/30/inotify/" title="Next Post: inotify">inotify &raquo;</a>
       
     </p>
   </footer>
