@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2013-12-31T02:34:17-03:00</updated>
+  <updated>2013-12-31T02:35:26-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -20,7 +20,7 @@
     <id>http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/31/me-di-cuenta-que-me-tiraste-la-senal</id>
     <content type="html"><![CDATA[<p>Uno de los mecanismos de <abbr title="Inter-Process Communication - Comunicación entre procesos">IPC</abbr> que nos provee Linux es el envío de señales. Es un modo de comunicación MUY minimalista: un proceso le envía una determinada señal a otro, y este último simplemente recibe el código asociado a la señal recibida.</p>
 
-<p>Y nada más. No hay parámetros, no hay información del emisor, nada. Sólo un código.</p>
+<p>Y nada más. No hay parámetros, no hay información del emisor, nada. Sólo un código.<!--more--></p>
 
 <p>Y, aún así, es un método más que útil: para terminar un proceso en la terminal (cuando apretamos <code>CTRL+C</code>), para cerrar un programa que se colgó (desde algún administrador de tareas), para pausar la ejecución de un proceso o para cerrar un programa clickeando la <code>x</code> de cierre en su ventana &ndash; en todos estos casos estamos mandando una señal a un proceso.</p>
 
