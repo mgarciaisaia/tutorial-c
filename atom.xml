@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2014-03-20T21:07:06-03:00</updated>
+  <updated>2014-03-21T00:45:05-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -196,6 +196,13 @@
 
 
 <p>Creo que no queda mucho más para agregar. <em>Espero que mis respuestas os haya iluminados :)</em></p>
+
+<hr>
+
+
+<p><strong>EDIT:</strong> Recordé que <strong>sí</strong> había algo más para agregar.</p>
+
+<p>Muchas veces ví que podía escribir un script sin ponerle un shebang, y que de todos modos funcionaba. ¿Por qué? Bueno, porque de algún modo se defaultea. En <a href="http://stackoverflow.com/a/9945113/641451">Stackoverflow</a> dicen que se ejecuta con la misma shell que estás usando en ese momento, pero esto no es comportamiento estándar: la documentación de la syscall <a href="http://linux.die.net/man/2/execve"><code>execve</code></a> dice que un script <strong>tiene que</strong> que comenzar con un shebang válido<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>. Conviene no dar nada por sentado y especificar el intérprete que queremos usar, asegurándonos así la compatibilidad y buen funcionamiento.</p>
 <div class="footnotes">
 <hr/>
 <ol>
@@ -203,6 +210,8 @@
 <p>El caracter <code>#</code> en inglés se llama &ldquo;hash&rdquo; (y supongo que se lo llamará, también, &ldquo;sha&rdquo;), y el <code>!</code> es el &ldquo;bang&rdquo;.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
 <li id="fn:2">
 <p><em>trivial</em> es un decir. Ejecutar un programa no tiene nada de trivial, pero digamos que <em>la idea de cómo ejecutarlo</em> es relativamente sencilla, al menos respecto a interpretar un script.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p>y abajo de todo tiene un programa <code>myecho</code> <em>MUUUUUUUY</em> similar a nuestro <code>interprete.c</code> :)<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
