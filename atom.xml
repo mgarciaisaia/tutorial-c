@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2013-12-31T02:35:26-03:00</updated>
+  <updated>2014-03-20T21:07:06-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -12,6 +12,202 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[She bangs, she bangs...]]></title>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/"/>
+    <updated>2014-03-20T19:33:00-03:00</updated>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2014/03/20/she-bangs-she-bangs</id>
+    <content type="html"><![CDATA[<p>Si alguna vez editaron un script UNIX, seguramente habrán visto que arrancan de manera similar: <code>#!/bin/sh</code>. Por algún motivo, esa línea mágica se llama <a href="0">Shebang</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</p>
+
+<figure class='code'><figcaption><span>mi_script </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/sh</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;¡Hola, mundo!&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Llamamos <code>mi_script</code> a este archivo.</p>
+
+<p>Esa línea mágica es la responsable de que podamos correr un script ejecutando <code>./mi_script</code> en la consola.<!--more--> Como dijimos en <a href="tutorial-c/blog/2013/08/19/arrancando">el primer post</a>, para ejecutar un programa en UNIX tenemos que tipear su ruta completa en la consola:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./mi_script
+</span><span class='line'>¡Hola, mundo!
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Al hacerlo, el sistema operativo carga el programa en memoria y lo ejecuta.</p>
+
+<p>El problema es que un script es texto. Los programas compilados tienen las instrucciones que nuestro procesador entiende, entonces es relativamente trivial ejecutarlo<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. Un script tiene texto. Y, adivinaste: el procesador no ejecuta texto. Entonces, ¿qué es lo que ocurre? ¿Por qué y cómo funciona la ejecución de scripts?</p>
+
+<p>La clave es el shebang. Cuando el sistema operativo detecta que lo que pretendemos ejecutar es un script (digamos, no es un programa en algún formato binario que el sistema operativo comprenda), busca en la primer línea para encontrar este shebang. Esa ruta que se encuentra después del <code>#!</code> (en nuestro caso anterior, <code>/bin/sh</code>) es la que va a ser ejecutada, pasándole como primer parámetro la ruta de nuestro script. Sí: en <code>/bin/sh</code> tenés que tener un programa ejecutable para que la ejecución del script funcione. Si, además, querés que se ejecute como corresponde, ese <code>/bin/sh</code> debería entender que cuando se lo ejecuta con un parámetro, ese parámetro representa una ruta a un archivo que contiene código en un lenguaje que ese programa sepa interpretar.</p>
+
+<p>En general, esto ocurre: por convención, en los sistemas UNIX <code>/bin/sh</code> es una <a href="http://es.wikipedia.org/wiki/Bourne_Shell">Bourne Shell</a>, o alguna otra shell con el modo de compatibilidad activado. ¿Qué es una Bourne Shell? Un programa capaz de interpretar scripts escritos en ese lenguaje. Dado que los programas que se ponen en los shebangs tienen como objetivo <em>interpretar</em> scripts, se los llamó (muy originalmente) <em>intérpretes</em>.</p>
+
+<p>¿Existen otros intérpretes? Claro que sí. <a href="https://www.python.org/">Python</a> es un lenguaje interpretado, y uno puede hacer scripts en Python y ejecutarlos en la consola, como <a href="https://github.com/chapuni/llvm-project/blob/bbf3f7262bd18fe1b140ba0db9ada8defa2c839f/klee/scripts/objdump">este</a>. Lo mismo pasa con Ruby, perl, y tantos otros lenguajes.</p>
+
+<p>Ahora, como somos curiosos, podríamos ponernos a jugar con esto y abusar un poquito. ¿Qué pasa si usamos otro programa como intérprete? ¿Podemos usar cualquier programa? Podemos, sí, pero los resultados van a cambiar.</p>
+
+<p>Editemos nuestro script. Modifiquemos únicamente el shebang, poniéndole como intérprete <code>/bin/cat</code>. <code>cat</code> es un programa que imprime <em>en pantalla</em> el contenido de la ruta que le pasamos por parámetro. ¿Qué va a pasar cuando volvamos a ejecutar nuestro script?</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./mi_script
+</span><span class='line'><span class="c">#!/bin/cat</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;¡Hola, mundo!&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Claro que sí. Al ejecutar nuestro script, el sistema operativo ejecutó <code>/bin/cat</code> pasándole la ruta a <code>mi_script</code> como parámetro. <code>cat</code>, como siempre, abrió la ruta que le pasaron por parámetro y mostró su contenido.</p>
+
+<p>Sigamos jugando. Usemos otro programa: <code>echo</code>. Cambiemos el intérprete por <code>/bin/echo</code>, y ejecutemos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./mi_script
+</span><span class='line'>./mi_script
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Así es. <code>echo</code> imprime lo que sea que le pasemos como parámetro. Si lo que le pasamos es la ruta de nuestro script, como pasa con todas las ejecuciones de los scripts, <code>echo</code> va a imprimir eso mismo en la consola.</p>
+
+<p>Otro intérprete &ldquo;loco&rdquo; que podemos poner es <code>rm</code>: <code>#!/bin/rm</code>. Ejecutemos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./mi_script
+</span><span class='line'><span class="nv">$ </span>ls mi_script
+</span><span class='line'>ls: mi_script: No such file or directory
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Así es, lo borramos.</p>
+
+<p>Entonces, hagamos una última prueba para jugar. Escribamos un programa que liste todos los parámetros con los que fue ejecutado:</p>
+
+<figure class='code'><figcaption><span>interprete.c </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">index</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">for</span><span class="p">(</span><span class="n">index</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="n">argc</span><span class="p">;</span> <span class="n">index</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;  Parametro %d: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">argv</span><span class="p">[</span><span class="n">index</span><span class="p">]);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Compilemos y ejecutemos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>gcc interprete.c -o interprete
+</span><span class='line'><span class="nv">$ </span>./interprete
+</span><span class='line'>  Parametro 0: ./interprete
+</span><span class='line'><span class="nv">$ </span>./interprete primerParametro segundo 3ro
+</span><span class='line'>  Parametro 0: ./interprete
+</span><span class='line'>  Parametro 1: primerParametro
+</span><span class='line'>  Parametro 2: segundo
+</span><span class='line'>  Parametro 3: 3ro
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>El primer parámetro de cualquier programa C es el propio programa. Ahora bien, pongámoslo como intérprete de nuestro script:</p>
+
+<figure class='code'><figcaption><span>mi_script </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!./interprete</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;Este codigo nunca se ejecutara&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Y ejecutemos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./mi_script
+</span><span class='line'>  Parametro 0: ./interprete
+</span><span class='line'>  Parametro 1: ./mi_script
+</span><span class='line'><span class="nv">$ </span>./mi_script primerParametro
+</span><span class='line'>  Parametro 0: ./interprete
+</span><span class='line'>  Parametro 1: ./mi_script
+</span><span class='line'>  Parametro 2: primerParametro
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Así es: se ejecuta el programa que pusimos en la shebang, y luego se le pasa todo lo que tipeemos en la consola. Y no sólo podemos poner un programa en el shebang, sino también parámetros:</p>
+
+<figure class='code'><figcaption><span>mi_script </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!./interprete unParametroFijo</span>
+</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;Este codigo nunca se ejecutara&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Y ejecutemos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./mi_script
+</span><span class='line'>  Parametro 0: ./interprete
+</span><span class='line'>  Parametro 1: unParametroFijo
+</span><span class='line'>  Parametro 2: ./mi_script
+</span><span class='line'><span class="nv">$ </span>./mi_script otroParametro
+</span><span class='line'>  Parametro 0: ./interprete
+</span><span class='line'>  Parametro 1: unParametroFijo
+</span><span class='line'>  Parametro 2: ./mi_script
+</span><span class='line'>  Parametro 3: otroParametro
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Creo que no queda mucho más para agregar. <em>Espero que mis respuestas os haya iluminados :)</em></p>
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>El caracter <code>#</code> en inglés se llama &ldquo;hash&rdquo; (y supongo que se lo llamará, también, &ldquo;sha&rdquo;), y el <code>!</code> es el &ldquo;bang&rdquo;.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p><em>trivial</em> es un decir. Ejecutar un programa no tiene nada de trivial, pero digamos que <em>la idea de cómo ejecutarlo</em> es relativamente sencilla, al menos respecto a interpretar un script.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Me dí cuenta que me tiraste la señal]]></title>
@@ -22,7 +218,7 @@
 
 <p>Y nada más. No hay parámetros, no hay información del emisor, nada. Sólo un código.<!--more--></p>
 
-<p>Y, aún así, es un método más que útil: para terminar un proceso en la terminal (cuando apretamos <code>CTRL+C</code>), para cerrar un programa que se colgó (desde algún administrador de tareas), para pausar la ejecución de un proceso o para cerrar un programa clickeando la <code>x</code> de cierre en su ventana &ndash; en todos estos casos estamos mandando una señal a un proceso.</p>
+<p>Y, aún así, es un método más que útil: para terminar un proceso en la terminal (cuando apretamos <kbd>CTRL+C</kbd>), para cerrar un programa que se colgó (desde algún administrador de tareas), para pausar la ejecución de un proceso o para cerrar un programa clickeando la <code>x</code> de cierre en su ventana &ndash; en todos estos casos estamos mandando una señal a un proceso.</p>
 
 <p>Las señales tienen asociadas distintas acciones por defecto, que se ejecutarán cuando el proceso reciba cada señal. Por ejemplo, al recibir <code>SIGTERM</code> o <code>SIGKILL</code><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>, el proceso finalizará con un código de salida no-exitoso, mientras que la señal <code>SIGUSR1</code> será ignorada (el proceso no hará nada al recibirla).</p>
 
