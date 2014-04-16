@@ -117,18 +117,20 @@
 
 <p>Llamamos <code>mi_script</code> a este archivo.</p>
 
-<p>Esa línea mágica es la responsable de que podamos correr un script ejecutando <code>./mi_script</code> en la consola.<!--more--> Como dijimos en <a href="tutorial-c/blog/2013/08/19/arrancando">el primer post</a>, para ejecutar un programa en UNIX tenemos que tipear su ruta completa en la consola:</p>
+<p>Esa línea mágica es la responsable de que podamos correr un script ejecutando <code>./mi_script</code> en la consola.<!--more--> Como dijimos en <a href="tutorial-c/blog/2013/08/19/arrancando">el primer post</a>, para ejecutar un programa en UNIX, el programa tiene que tener permisos de ejecución<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>, y luego tenemos que tipear su ruta completa en la consola:</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./mi_script
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>chmod +x mi_script
+</span><span class='line'><span class="nv">$ </span>./mi_script
 </span><span class='line'>¡Hola, mundo!
 </span></code></pre></td></tr></table></div></figure>
 
 
 <p>Al hacerlo, el sistema operativo carga el programa en memoria y lo ejecuta.</p>
 
-<p>El problema es que un script es texto. Los programas compilados tienen las instrucciones que nuestro procesador entiende, entonces es relativamente trivial ejecutarlo<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>. Un script tiene texto. Y, adivinaste: el procesador no ejecuta texto. Entonces, ¿qué es lo que ocurre? ¿Por qué y cómo funciona la ejecución de scripts?</p>
+<p>El problema es que un script es texto. Los programas compilados tienen las instrucciones que nuestro procesador entiende, entonces es relativamente trivial ejecutarlo<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>. Un script tiene texto. Y, adivinaste: el procesador no ejecuta texto. Entonces, ¿qué es lo que ocurre? ¿Por qué y cómo funciona la ejecución de scripts?</p>
 
 <p>La clave es el shebang. Cuando el sistema operativo detecta que lo que pretendemos ejecutar es un script (digamos, no es un programa en algún formato binario que el sistema operativo comprenda), busca en la primer línea para encontrar este shebang. Esa ruta que se encuentra después del <code>#!</code> (en nuestro caso anterior, <code>/bin/sh</code>) es la que va a ser ejecutada, pasándole como primer parámetro la ruta de nuestro script. Sí: en <code>/bin/sh</code> tenés que tener un programa ejecutable para que la ejecución del script funcione. Si, además, querés que se ejecute como corresponde, ese <code>/bin/sh</code> debería entender que cuando se lo ejecuta con un parámetro, ese parámetro representa una ruta a un archivo que contiene código en un lenguaje que ese programa sepa interpretar.</p>
 
@@ -289,16 +291,18 @@
 
 <p><strong>EDIT:</strong> Recordé que <strong>sí</strong> había algo más para agregar.</p>
 
-<p>Muchas veces ví que podía escribir un script sin ponerle un shebang, y que de todos modos funcionaba. ¿Por qué? Bueno, porque de algún modo se defaultea. En <a href="http://stackoverflow.com/a/9945113/641451">Stackoverflow</a> dicen que se ejecuta con la misma shell que estás usando en ese momento, pero esto no es comportamiento estándar: la documentación de la syscall <a href="http://linux.die.net/man/2/execve"><code>execve</code></a> dice que un script <strong>tiene que</strong> que comenzar con un shebang válido<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>. Conviene no dar nada por sentado y especificar el intérprete que queremos usar, asegurándonos así la compatibilidad y buen funcionamiento.</p>
+<p>Muchas veces ví que podía escribir un script sin ponerle un shebang, y que de todos modos funcionaba. ¿Por qué? Bueno, porque de algún modo se defaultea. En <a href="http://stackoverflow.com/a/9945113/641451">Stackoverflow</a> dicen que se ejecuta con la misma shell que estás usando en ese momento, pero esto no es comportamiento estándar: la documentación de la syscall <a href="http://linux.die.net/man/2/execve"><code>execve</code></a> dice que un script <strong>tiene que</strong> comenzar con un shebang válido<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>. Conviene no dar nada por sentado y especificar el intérprete que queremos usar, asegurándonos así la compatibilidad y buen funcionamiento.</p>
 <div class="footnotes">
 <hr/>
 <ol>
 <li id="fn:1">
 <p>El caracter <code>#</code> en inglés se llama &ldquo;hash&rdquo; (y supongo que se lo llamará, también, &ldquo;sha&rdquo;), y el <code>!</code> es el &ldquo;bang&rdquo;.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
 <li id="fn:2">
-<p><em>trivial</em> es un decir. Ejecutar un programa no tiene nada de trivial, pero digamos que <em>la idea de cómo ejecutarlo</em> es relativamente sencilla, al menos respecto a interpretar un script.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<p>¡Gracias, Victor, por la corrección!<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
 <li id="fn:3">
-<p>y abajo de todo tiene un programa <code>myecho</code> <em>MUUUUUUUY</em> similar a nuestro <code>interprete.c</code> :)<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<p><em>trivial</em> es un decir. Ejecutar un programa no tiene nada de trivial, pero digamos que <em>la idea de cómo ejecutarlo</em> es relativamente sencilla, al menos respecto a interpretar un script.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<li id="fn:4">
+<p>Y, abajo de todo, en la documentación, muestra el código de un programa llamado <code>myecho</code> <em>MUUUUUUUY</em> similar a nuestro <code>interprete.c</code> :)<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
@@ -332,7 +336,7 @@
     
       <div class="sharing">
   
-  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/" >Tweet</a>
+  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/" data-via="sisoputnfrba" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="small"></div>
