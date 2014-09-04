@@ -111,33 +111,12 @@
   <div class="entry-content"><blockquote><p>Con algo de suerte, este será el primero de una serie de al menos 3 posts hablando sobre la gestión de la memoria en C. Sólo parece no aportar tanto, pero probablemente entre los 3 den un mensaje más o menos copado. Stay tuned :)</p></blockquote>
 
 
-<p>Una de las complejidades más importantes asociadas a la programación en C es la gestión y el uso de la memoria.</p>
-
-<p>Para un programa C, la memoria de la computadora es poco más que un gran vector (<em>array</em>) de bytes consecutivos. Todos y cada uno de estos bytes tienen una dirección: un número que permite al programa identificar a cada byte unequívocamente. Las direcciones arrancan (como todo en C) por la dirección 0. Y, como suelen representarse en hexa, vamos a decir que el primer byte de memoria es el de la dirección <code>0x0</code>.</p>
-
-<p>Es importante recordar que C trabaja con <em>punteros</em> (referencias a direcciones de memoria) <em>absolutos</em>, por lo que, en principio, el byte <code>0x0</code> no será necesariamente el primero de los que use nuestro programa para almacenar datos, sino el primero de la memoria de la computadora<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</p>
-
-<p>Las direcciones son consecutivas, por lo que el byte siguiente al <code>0x0</code> será el <code>0x1</code>, <code>0x2</code>, y así siguiendo. Hablamos en hexa, así que el décimo byte será el <code>0x9</code>, pero el undécimo será <code>0xa</code>, y así.</p>
-
-<p>Pero, en general, uno como programador no usa bytes de memoria, sino una abstracción un poquito por encima: las variables.</p>
-
-<p>Al declarar una variable, le estamos indicando al compilador que reserve una determinada cantidad de bytes de memoria, según el tipo declarado, y además le asociamos un nombre a ese conjunto de bytes, de modo que podamos identificarlo y referirlo de modo más simple.</p>
-
-<p>Es importante recalcar que el nombre de la variable sólo existe hasta la compilación: al ejecutar nuestro programa, todas las referencias a memoria se hacen a través de direcciones y tamaños<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>.</p>
-
-<p>Entonces, así como la declaración <code>unsigned int nombre[10];</code> reserva (en una arquitectura de 32 bits) 40 bytes, la referencia <code>nombre[0]</code> habla de la misma dirección que <code>nombre</code> (por ejemplo, podría referir a <code>0x0842f5</code>), mientras que <code>nombre[2]</code> referirá a la dirección 8 bytes más grande, <code>0x0842fd</code>. Como el tipo de datos es <code>unsigned int</code>, de 32 bits, el compilador sabe cuántos bytes desplazarse para cada elemento (sabiendo, así, que <code>nombre[2]</code> está 8 bytes después de <code>nombre[0]</code>, y no 4, 2, 16 o cualquier otra cantidad), y cuántos bytes a partir de esa dirección tiene que leer para obtener el dato buscado.</p>
-<div class="footnotes">
-<hr/>
-<ol>
-<li id="fn:1">
-<p>En particular, el byte <code>0x0</code> suele tener un significado muy especial en la mayoría de los sistemas operativos (<code>NULL</code> suele ser una referencia al <code>0x0</code>), por lo que en la inmensa mayoría de los casos el byte <code>0x0</code> <em>no va</em> a pertenecer a nuestro proceso.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
-<li id="fn:2">
-<p>Cuando indicamos compilar en modo debug, el compilador incluye en el programa final información extra (como los nombres de las variables y funciones) a fin de poder mostrar mensajes de error más apropiados que simplemente muchas direcciones de memoria, pero esta información <strong>NO ES REQUERIDA</strong> para la ejecución del programa.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
-</ol>
-</div>
-
-</div>
+<p>Una de las complejidades más importantes asociadas a la programación en C es la gestión y el uso de la memoria.</div>
   
+  
+    <footer>
+      <a rel="full-article" href="/tutorial-c/blog/2014/09/04/p-sherman-calle-wallaby-42-sydney/">Seguir leyendo&#8230;</a>
+    </footer>
   
 
 
