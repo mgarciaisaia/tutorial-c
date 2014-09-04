@@ -5,11 +5,12 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>inotify - C para Operativos</title>
+  <title>Segmentos de memoria - C para Operativos</title>
   <meta name="author" content="mgarciaisaia">
 
   
-  <meta name="description" content="**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &#8220;in&#8221; que se te ocurra. &hellip;">
+  <meta name="description" content="
+">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +19,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify">
+  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/05/13/segmentos-de-memoria">
   <link href="/tutorial-c/favicon.png" rel="icon">
   <link href="/tutorial-c/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/tutorial-c/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
@@ -80,7 +81,7 @@
   
   <header>
     
-      <h1 class="entry-title">Inotify</h1>
+      <h1 class="entry-title">Segmentos De Memoria</h1>
     
     
       <p class="meta">
@@ -96,7 +97,7 @@
   
 
 
-<time datetime="2013-12-30T02:09:00-03:00" pubdate data-updated="true">Dec 30<span>th</span>, 2013</time>
+<time datetime="2014-05-13T19:45:00-03:00" pubdate data-updated="true">May 13<span>th</span>, 2014</time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -105,41 +106,7 @@
   </header>
 
 
-<div class="entry-content"><blockquote><p>**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &#8220;in&#8221; que se te ocurra. Su espíritu es simplemente poder referenciar acá cada vez que surja un inconveniente con la herramienta, para no repetir lo que escribo siempre, y para cada vez dar una mejor respuesta. Todo aporte será más que bienvenido.</p></blockquote>
-
-
-<p>El mundo real apesta. Existe el hambre, la capa de ozono se debilita, y el software obra de maneras misteriosas.</p>
-
-<p><code>inotify</code> es una API de Linux que nos permite monitorear cambios en un archivo o directorio. En criollo, es un <em>duende</em> al que le pedimos que levante la mano cuando ocurre algún evento que a nosotros nos interese, como la creación de un archivo en un directorio, la eliminación de un archivo o una escritura.<!--more--></p>
-
-<p>Como es funcionalidad que provee el kernel, claramente está bien implementada: nada de tener al duende haciendo <code>ls</code> cada medio segundo para que avise al encontrar diferencias entre los últimos dos <code>ls</code>, sino que existe un modelo de eventos, y nosotros podemos especificar aquellos que nos interesa que se nos notifiquen (de ahí el 90% del nombre, je).</p>
-
-<p>El otro 10% es la i. <code>inotify</code> es funcionalidad que provee el kernel, por lo que trabaja al nivel al que el kernel conoce a los archivos, el File Control Block: los inodos. Al atender las diferentes llamadas al sistema (syscalls), el kernel dispara también las notificaciones correspondientes.</p>
-
-<p>Los eventos por los que podemos ser notificados están explicados en el man:</p>
-
-<pre><code>IN_ACCESS         File was accessed (read) (*).
-IN_ATTRIB         Metadata changed, e.g., permissions, timestamps, extended attributes,
-                    link count (since Linux 2.6.25), UID, GID, etc. (*).
-IN_CLOSE_WRITE    File opened for writing was closed (*).
-IN_CLOSE_NOWRITE  File not opened for writing was closed (*).
-IN_CREATE         File/directory created in watched directory (*).
-IN_DELETE         File/directory deleted from watched directory (*).
-IN_DELETE_SELF    Watched file/directory was itself deleted.
-IN_MODIFY         File was modified (*).
-IN_MOVE_SELF      Watched file/directory was itself moved.
-IN_MOVED_FROM     File moved out of watched directory (*).
-IN_MOVED_TO       File moved into watched directory (*).
-IN_OPEN           File was opened (*).
-</code></pre>
-
-<p>El problema ocurre con el mundo real. Dado que en ningún lugar está definido el contrato de cómo un programa tiene que implementar sus funcionalidades (por comunes que sean, como la actualización de un archivo), cada aplicación en particular puede implementar un conjunto de llamadas al sistema distinto para hacerlo. Si a esto sumamos la antiguedad y diversidad de orígenes de los editores de texto que se usan en Linux (algunos datan de los 70, pensados para usar en mainframes, mientras que otros son más recientes y apuntan a optimizar acceso a disco, o uso de memoria, o tiempo de respuesta), el panorama es realmente complejo: algunos editores de texto simplemente actualizarán los bloques de datos que hayan cambiado, mientras que otros optarán por enfoques más extraños.</p>
-
-<p>Un caso conocido es el de <code>nano</code>. Al grabar un archivo pequeño (archivos menores a 1 bloque &ndash; 4kb), <code>nano</code> optará por vaciar el archivo (truncarlo a 0 bytes) y luego grabar su contenido, por lo que <code>inotify</code> disparará dos eventos: <code>IN_MODIFIY</code> (&ldquo;el archivo fue vaciado&rdquo;), y luego otro <code>IN_MODIFY</code> (&ldquo;se escribió el contenido del archivo&rdquo;).</p>
-
-<p><code>vim</code>, por otro lado, mantiene un archivo de backup mientras vamos trabajando, para ahorrarnos algún dolor de cabeza si se nos llegara a apagar mal la máquina. Ahora, como ya mantiene ese archivo de backup, a <code>vim</code> le es más facil, cuando le pedimos grabar un archivo, reemplazar el archivo que existía por el backup actualizado, y listo. El resultado de esto es un set de llamadas al sistema bastante distinto al de <code>nano</code>: primero elimina el archivo original, y luego renombra el backup para que ocupe la ruta en que se encontraba el original. El problema con esto no sólo es que no hay eventos <code>IN_MODIFY</code>, sino que, como dijimos, <code>inotify</code> conoce inodos: el archivo del backup, por más que pase a llamarse igual que el original, es un inodo distinto, por lo que <code>inotify</code> dejará de detectar eventos sobre el archivo que se encuentra en el path que habíamos especificado.</p>
-
-<p>&ldquo;Solucionar&rdquo; estos problemas requiere tener en cuenta el comportamiento de cada editor y reaccionar de manera acorde cuando se detectan los eventos.</p>
+<div class="entry-content">
 </div>
 
 
@@ -162,21 +129,15 @@ IN_OPEN           File was opened (*).
   
 
 
-<time datetime="2013-12-30T02:09:00-03:00" pubdate data-updated="true">Dec 30<span>th</span>, 2013</time>
+<time datetime="2014-05-13T19:45:00-03:00" pubdate data-updated="true">May 13<span>th</span>, 2014</time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/tutorial-c/blog/categories/extras/'>extras</a>
-  
-</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify/" >Tweet</a>
+  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2014/05/13/segmentos-de-memoria/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2014/05/13/segmentos-de-memoria/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="small"></div>
@@ -189,10 +150,10 @@ IN_OPEN           File was opened (*).
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/" title="Previous Post: Bajando el nivel">&laquo; Bajando el nivel</a>
+        <a class="basic-alignment left" href="/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/" title="Previous Post: She bangs, she bangs...">&laquo; She bangs, she bangs...</a>
       
       
-        <a class="basic-alignment right" href="/tutorial-c/blog/2013/12/31/me-di-cuenta-que-me-tiraste-la-senal/" title="Next Post: Me dí cuenta que me tiraste la señal">Me dí cuenta que me tiraste la señal &raquo;</a>
+        <a class="basic-alignment right" href="/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria/" title="Next Post: Ensayo sobre la memoria">Ensayo sobre la memoria &raquo;</a>
       
     </p>
   </footer>
@@ -307,8 +268,8 @@ IN_OPEN           File was opened (*).
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify/';
-        var disqus_url = 'http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify/';
+        var disqus_identifier = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/05/13/segmentos-de-memoria/';
+        var disqus_url = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/05/13/segmentos-de-memoria/';
         var disqus_script = 'embed.js';
       
     (function () {
