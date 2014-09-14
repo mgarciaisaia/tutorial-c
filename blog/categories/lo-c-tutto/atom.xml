@@ -4,7 +4,7 @@
   <title><![CDATA[Category: lo-c-tutto | C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/blog/categories/lo-c-tutto/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2014-09-04T00:53:37-03:00</updated>
+  <updated>2014-09-14T03:51:26-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -309,7 +309,7 @@ Compilemos nuestro programa:
 
 <p>Bueno, sí, es cierto. No muestra nada porque no le pedimos que muestre nada: nuestro programa sólo devuelve un 0, y nuestra consola sólo ejecuta las instrucciones que le damos. Entonces, pidámosle que muestre el resultado: <code>echo $?</code>.</p>
 
-<p>&ldquo;¡Que te recontra!&rdquo; Bueno, sí. [El amigo Bourne] (<a href="http://en.wikipedia.org/wiki/Stephen_R._Bourne">http://en.wikipedia.org/wiki/Stephen_R._Bourne</a>) había faltado a la clase de nombres descriptivos. <code>echo</code> es un comando de las consolas que imprime en pantalla<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> lo que sea que le pasemos por parámetro. Por ejemplo, <code>echo Hola mundo</code> imprime <code>Hola mundo</code>. <code>bash</code> (el lenguaje que interpreta nuestra consola) posee variables, y para dereferenciarlas (leerlas) hay que anteponerle un <code>$</code> al nombre de la variable. Por ejemplo (<code>#</code> es el caracter de comentario):</p>
+<p>&ldquo;¡Que te recontra!&rdquo; Bueno, sí. <a href="http://en.wikipedia.org/wiki/Stephen_R._Bourne">El amigo Bourne</a> había faltado a la clase de nombres descriptivos. <code>echo</code> es un comando de las consolas que imprime en pantalla<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> lo que sea que le pasemos por parámetro. Por ejemplo, <code>echo Hola mundo</code> imprime <code>Hola mundo</code>. <code>bash</code> (el lenguaje que interpreta nuestra consola) posee variables, y para dereferenciarlas (leerlas) hay que anteponerle un <code>$</code> al nombre de la variable. Por ejemplo (<code>#</code> es el caracter de comentario):</p>
 
 <p><div class='bogus-wrapper'><notextile><figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
