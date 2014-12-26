@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Compiladores Y Errores - C para Operativos</title>
+  <title>int vs int32_t - C para Operativos</title>
   <meta name="author" content="mgarciaisaia">
 
   
-  <meta name="description" content="Hace un tiempo me llegó la siguiente consulta por mail: Cuando trato de correr un proceso por consola me tira un mensaje &#8220;violacion de segmento &hellip;">
+  <meta name="description" content="Este post es un laburo en conjunto que hicimos con Micaela Oriolo. Kudos para ella :) No entiendo qué pito tocan los uint32. ¿Cuándo hay que usarlos &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/compiladores-y-errores">
+  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t">
   <link href="/tutorial-c/favicon.png" rel="icon">
   <link href="/tutorial-c/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/tutorial-c/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
@@ -80,7 +80,7 @@
   
   <header>
     
-      <h1 class="entry-title">Compiladores Y Errores</h1>
+      <h1 class="entry-title">Int vs Int32_t</h1>
     
     
       <p class="meta">
@@ -96,7 +96,7 @@
   
 
 
-<time datetime="2014-12-26T19:17:00-03:00" pubdate data-updated="true">Dec 26<span>th</span>, 2014</time>
+<time datetime="2014-12-26T20:05:00-03:00" pubdate data-updated="true">Dec 26<span>th</span>, 2014</time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -105,44 +105,41 @@
   </header>
 
 
-<div class="entry-content"><p>Hace un tiempo me llegó la siguiente consulta por mail:</p>
+<div class="entry-content"><p><em>Este post es un laburo en conjunto que hicimos con Micaela Oriolo. Kudos para ella :)</em></p>
 
-<blockquote><p>Cuando trato de correr un proceso por consola me tira un mensaje &#8220;violacion de segmento&#8221; (&#8216;core&#8217; generado). Como mi proceso compilaba correctamente, no me tira errores, me resultaba extraño que me tire en tiempo de ejecución ese error.</p><p>Mi pregunta es, ¿puede ser que los errores del segmentation fault no me los alerte en tiempo de compilacion?</p></blockquote>
-
-
-<!--more-->
+<blockquote><p>No entiendo qué pito tocan los uint32. ¿Cuándo hay que usarlos sí o sí?</p></blockquote>
 
 
-<p>¡Claro que el programa puede fallar incluso cuando no tiene problemas de compilación! El software fallaría mucho menos si lo único que necesitáramos es que el compilador reporte cero errores. Pero hay montones de cosas que afectan la ejecución de un programa, y que exceden por completo las capacidades del compilador, y por eso el compilador <strong>no puede</strong> reportarlas.</p>
+<p>En la vida real, todo puede explotar. Entre las miles de causas del típico “en casa compila”, se encuentra el uso (o no uso, mejor dicho) de los tipos de datos que especifican su tamaño. En este caso, vamos a hablar del tipo de dato <code>int</code>.</p>
 
-<p>Un error del compilador significa que el código es sintácticamente inválido, al punto de que el compilador no puede traducir tu texto a código de máquina. Pero entre código válido y código funcional hay un tremendo salto, y entre código válido y código sin errores, puff.</p>
+<p>La definición que el estándar de C da sobre el <code>int</code> es muy vaga:</p>
 
-<p>Pero además de &ldquo;detectar código mal formado&rdquo;, el compilador tiene los warnings, que son avisos de cosas que probablemente estés haciendo mal. Un programa con warnings compila y puede ejecutarse, pero existe una gran probabilidad de que haya errores lógicos que hagan que funcione de modo inesperado.</p>
+<blockquote><p>A ‘plain’ int object has the natural size suggested by the architecture of the execution environment (large enough to contain any value in the range INT_MIN to INT_MAX as defined in the header <limits.h></p><footer><strong>ISO/IEC 9899:TC3</strong> <cite><a href='http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf'>6.2.5 - Types, P33</a></cite></footer></blockquote>
 
-<p>Y hasta ahí puede llegar el compilador. Pero hay montones de errores que el compilador no puede detectar, por lo que no es una gran garantía la compilación.</p>
 
-<p>Por esto es que hace años que se viene laburando un montón en crear cosas como los tests, las buenas prácticas, los patrones de diseño, la delegación y encapsulamiento como medios para reutilizar código, la abstracción, etc.
-TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, al punto de que es inviable para cualquier programa más o menos útil.</p>
+<p>Lo que nos importa ahora de esta definición es que dice que el <code>int</code> tiene el tamaño sugerido por la arquitectura del entorno de ejecución. Esto significa que, en arquitecturas de 32 bits, el <code>int</code> suele medir 32 bits, mientras que en arquitecturas de 64 bits el <code>int</code> puede medir 32 o 64 bits.</p>
 
-<p>Así que hay que aprender a bailar con eso.</p>
+<p>A simple vista, esto puede parecer molesto, pero tiene sus razones, una de las cuales es que el hecho de que los datos estén <em>alineados a la palabra del procesador</em> hace que las operaciones a nivel CPU sean más ágiles.</p>
 
-<p>Segmentation fault, en particular, es un error en tiempo de ejecución, que indica un acceso inválido a memoria.</p>
+<p>Si en tu programa declarás todas las variables como <code>int32_t</code> y alguien compila ese programa para correr en un procesador de, por ejemplo, 16 bits, ese procesador no va a estar muy feliz, porque cada operación que haga con esos <code>int32_t</code> implica 2 lecturas, incluso si lo único que querías hacer con esa variable es un for de 1 a 10.</p>
 
-<p>Lo mejor que podés hacer cuando tenés un problema de memoria en tu código es usar <a href="http://valgrind.org/docs/manual/quick-start.html"><code>valgrind</code></a>. Es una herramienta con la que ejecutar tu programa, y que lleva una especie de <em>contabilidad</em> de cómo estas usando la memoria. Cuando tu programa usa erróneamente la memoria (sea un error evitable o uno abortivo), <code>valgrind</code> te informa en qué línea de código intentaste acceder a qué parte de la memoria, y si puede te dice cerca de qué zonas de memoria válidas fue tu acceso (para, por ejemplo, darte cuenta de que estás tratando de escribir un byte de más porque te faltó reservar el espacio para el <code>\0</code> de un string, ponele).</p>
+<p><em>Entonces, ¿qué hago? ¿cuándo uso <code>int</code> y cuándo <code>int32_t</code>?</em></p>
 
-<p>Buscá en <a href="http://utn.so/">el blog de la materia</a> que en la parte de <a href="http://www.utn.so/recursos/">recursos</a> hay <a href="http://faq.utn.so/valgrind">un documento que ayuda a entender los reportes de valgrind</a>. El 90% de los problemas los podés atacar con eso.</p>
+<p>Si lo que querés guardar en tu variable es un número, entonces no va a haber ningún problema porque, justamente, por eso de que el dato está alineado, va a andar bien y rápido. Pero, hay veces en las que necesitás tener garantía del tamaño. Por ejemplo, cuando se trata de direcciones de memoria, pero también cuando querés serializar datos para mandarlos de una computadora a la otra. Si serializás el <code>int</code> copiando <code>sizeof(int)</code> bytes y mandándolos, no sabés cuánto es <code>sizeof(int)</code> en la otra máquina. Si no coinciden, ¡pum!.</p>
 
-<p>Además, hay <a href="https://www.youtube.com/watch?v=-CI4MexyU3I">un vídeo en que explico cómo poder inspeccionar con eclipse un proceso que falló</a>, para poder ver el estado de las variables al momento del fallo. Eso ayuda bastante a ver por qué te ocurrió el problema que reporta valgrind cuando no son tan evidentes las causas.</p>
+<p>Para <em>estos casos</em> aparecen los tipos de datos que especifican su tamaño. Podemos distinguir dos enfoques distintos:</p>
 
-<p>En cuanto a los pseudo ejemplos de código que me pasas, no te olvides que hay una enorme diferencia entre <code>t_estructura</code> y <code>t_estructura *</code>. Una cosa es la estructura (un conjunto de bytes con los datos que estás modelando) y otra es el puntero (unos pocos bytes con la dirección de memoria en que uno espera encontrar la estructura con los datos del modelo).</p>
+<ul>
+<li>Los tipos de datos <em>nativos</em> tienen un nombre muy declarativo, que te dice “yo soy un carácter, yo soy un número chiquito, yo soy un número normal, yo soy un número grande”</li>
+<li>Los tipos de datos que especifican su tamaño, están muy ligados a la implementación: “yo mido 16 bits, yo mido 32, yo mido 64”.</li>
+</ul>
 
-<p>No te olvides, tampoco, del scope de las variables en tu programa. Las variables locales, almacenadas en el stack (tal como en el TP), sólo viven hasta que finaliza la ejecución de la función en que son declaradas. Si tu función que crea la estructura lo hace en una variable local, al retornar de esa función la memoria en que se almacenó la estructura deja de estar reservada, y puede ser sobreescrita. Entonces puede que tu programa pinche por eso, también.</p>
 
-<p>Y por esto usamos <code>malloc()</code>: reservamos memoria en el heap, que nosotros decidiremos cuándo liberar, pudiendo &ldquo;sobrevivir&rdquo; a la función que la reservó.</p>
+<p><em>Todo muy lindo, pero&hellip; ¿cuál es la relación entre todo esto y el intervalo de números que soporta cada tipo de dato?</em></p>
 
-<p>Como &ldquo;moraleja&rdquo; número 2 del mail, recorda lo que dijimos en las charlas sobre usar las herramientas adecuadamente.</p>
+<p>Bueno, siempre depende del tamaño del tipo de dato. Sin importar cómo esté declarada la variable, si mide 32 bits se va a bancar 2<sup>32</sup> números distintos. De ahí que a veces puede pasar que el <code>long int</code> mida lo mismo que el <code>int</code>, y entonces el <code>long int</code> puede soportar el mismo intervalo que el <code>int</code>&hellip; lo cual no es muy feliz, pero <em>es lo que hay</em>.</p>
 
-<p>No le escapes a <code>malloc()</code>. Hay motivos para que exista, y yo te prometo que es desproporcionadamente más fácil aprender a usar <code>malloc</code> y gestionar bien la memoria que aprobar un TP de Operativos sin aprenderlo (asumiendo que eso sea posible). Aprovecha, además, que el TP este tiene bastante que ver con la gestión de memoria, y debería aportar en ese sentido.</p>
+<p>Una buena práctica de programación es asegurar la portabilidad de tu programa, es decir, que sea lo más independiente de la arquitectura posible, para que pueda correrse en muchas máquinas distintas. Entonces, no sería una mala idea poner en práctica el criterio y empezar a decidir cuándo sería conveniente usar <code>int</code> o cuándo es mejor <code>int32_t</code> (a.k.a. “Acá pongo <code>int32_t</code> porque sí.”)</p>
 </div>
 
 
@@ -165,7 +162,7 @@ TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, a
   
 
 
-<time datetime="2014-12-26T19:17:00-03:00" pubdate data-updated="true">Dec 26<span>th</span>, 2014</time>
+<time datetime="2014-12-26T20:05:00-03:00" pubdate data-updated="true">Dec 26<span>th</span>, 2014</time>
       
 
 
@@ -173,7 +170,7 @@ TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, a
     
       <div class="sharing">
   
-  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/compiladores-y-errores/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/compiladores-y-errores/" >Tweet</a>
+  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="small"></div>
@@ -186,10 +183,8 @@ TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, a
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/tutorial-c/blog/2014/12/26/un-tutorial-rapido-para-implementar-y-debuggear-malloc/" title="Previous Post: Un tutorial rápido para implementar y debuggear malloc, free, calloc y realloc">&laquo; Un tutorial rápido para implementar y debuggear malloc, free, calloc y realloc</a>
+        <a class="basic-alignment left" href="/tutorial-c/blog/2014/12/26/compiladores-y-errores/" title="Previous Post: Compiladores Y Errores">&laquo; Compiladores Y Errores</a>
       
-      
-        <a class="basic-alignment right" href="/tutorial-c/blog/2014/12/26/int-vs-int32-t/" title="Next Post: int vs int32_t">int vs int32_t &raquo;</a>
       
     </p>
   </footer>
@@ -308,8 +303,8 @@ TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, a
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/compiladores-y-errores/';
-        var disqus_url = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/compiladores-y-errores/';
+        var disqus_identifier = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t/';
+        var disqus_url = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t/';
         var disqus_script = 'embed.js';
       
     (function () {

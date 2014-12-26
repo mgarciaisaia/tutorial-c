@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2014-12-26T19:20:16-03:00</updated>
+  <updated>2014-12-26T20:05:38-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -12,6 +12,49 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[int vs int32_t]]></title>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t/"/>
+    <updated>2014-12-26T20:05:00-03:00</updated>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t</id>
+    <content type="html"><![CDATA[<p><em>Este post es un laburo en conjunto que hicimos con Micaela Oriolo. Kudos para ella :)</em></p>
+
+<blockquote><p>No entiendo qué pito tocan los uint32. ¿Cuándo hay que usarlos sí o sí?</p></blockquote>
+
+
+<p>En la vida real, todo puede explotar. Entre las miles de causas del típico “en casa compila”, se encuentra el uso (o no uso, mejor dicho) de los tipos de datos que especifican su tamaño. En este caso, vamos a hablar del tipo de dato <code>int</code>.</p>
+
+<p>La definición que el estándar de C da sobre el <code>int</code> es muy vaga:</p>
+
+<blockquote><p>A ‘plain’ int object has the natural size suggested by the architecture of the execution environment (large enough to contain any value in the range INT_MIN to INT_MAX as defined in the header <limits.h></p><footer><strong>ISO/IEC 9899:TC3</strong> <cite><a href='http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf'>6.2.5 - Types, P33</a></cite></footer></blockquote>
+
+
+<p>Lo que nos importa ahora de esta definición es que dice que el <code>int</code> tiene el tamaño sugerido por la arquitectura del entorno de ejecución. Esto significa que, en arquitecturas de 32 bits, el <code>int</code> suele medir 32 bits, mientras que en arquitecturas de 64 bits el <code>int</code> puede medir 32 o 64 bits.</p>
+
+<p>A simple vista, esto puede parecer molesto, pero tiene sus razones, una de las cuales es que el hecho de que los datos estén <em>alineados a la palabra del procesador</em> hace que las operaciones a nivel CPU sean más ágiles.</p>
+
+<p>Si en tu programa declarás todas las variables como <code>int32_t</code> y alguien compila ese programa para correr en un procesador de, por ejemplo, 16 bits, ese procesador no va a estar muy feliz, porque cada operación que haga con esos <code>int32_t</code> implica 2 lecturas, incluso si lo único que querías hacer con esa variable es un for de 1 a 10.</p>
+
+<p><em>Entonces, ¿qué hago? ¿cuándo uso <code>int</code> y cuándo <code>int32_t</code>?</em></p>
+
+<p>Si lo que querés guardar en tu variable es un número, entonces no va a haber ningún problema porque, justamente, por eso de que el dato está alineado, va a andar bien y rápido. Pero, hay veces en las que necesitás tener garantía del tamaño. Por ejemplo, cuando se trata de direcciones de memoria, pero también cuando querés serializar datos para mandarlos de una computadora a la otra. Si serializás el <code>int</code> copiando <code>sizeof(int)</code> bytes y mandándolos, no sabés cuánto es <code>sizeof(int)</code> en la otra máquina. Si no coinciden, ¡pum!.</p>
+
+<p>Para <em>estos casos</em> aparecen los tipos de datos que especifican su tamaño. Podemos distinguir dos enfoques distintos:</p>
+
+<ul>
+<li>Los tipos de datos <em>nativos</em> tienen un nombre muy declarativo, que te dice “yo soy un carácter, yo soy un número chiquito, yo soy un número normal, yo soy un número grande”</li>
+<li>Los tipos de datos que especifican su tamaño, están muy ligados a la implementación: “yo mido 16 bits, yo mido 32, yo mido 64”.</li>
+</ul>
+
+
+<p><em>Todo muy lindo, pero&hellip; ¿cuál es la relación entre todo esto y el intervalo de números que soporta cada tipo de dato?</em></p>
+
+<p>Bueno, siempre depende del tamaño del tipo de dato. Sin importar cómo esté declarada la variable, si mide 32 bits se va a bancar 2<sup>32</sup> números distintos. De ahí que a veces puede pasar que el <code>long int</code> mida lo mismo que el <code>int</code>, y entonces el <code>long int</code> puede soportar el mismo intervalo que el <code>int</code>&hellip; lo cual no es muy feliz, pero <em>es lo que hay</em>.</p>
+
+<p>Una buena práctica de programación es asegurar la portabilidad de tu programa, es decir, que sea lo más independiente de la arquitectura posible, para que pueda correrse en muchas máquinas distintas. Entonces, no sería una mala idea poner en práctica el criterio y empezar a decidir cuándo sería conveniente usar <code>int</code> o cuándo es mejor <code>int32_t</code> (a.k.a. “Acá pongo <code>int32_t</code> porque sí.”)</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Compiladores Y Errores]]></title>
