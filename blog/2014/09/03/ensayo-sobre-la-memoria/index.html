@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>C para Operativos</title>
+  <title>Ensayo sobre la memoria - C para Operativos</title>
   <meta name="author" content="mgarciaisaia">
 
   
-  <meta name="description" content="Este post es mi traducción del post A Quick Tutorial on Implementing and Debugging Malloc, Free, Calloc, and Realloc de Dan Luu. Cualquier error o &hellip;">
+  <meta name="description" content="Una de las complejidades más importantes asociadas a la programación en C es la gestión y el uso de la memoria. Para un programa C, la memoria de la &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c">
+  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria">
   <link href="/tutorial-c/favicon.png" rel="icon">
   <link href="/tutorial-c/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/tutorial-c/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
@@ -75,150 +75,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2014/12/26/un-tutorial-rapido-para-implementar-y-debuggear-malloc/">Un Tutorial Rápido Para Implementar Y Debuggear Malloc, Free, Calloc Y Realloc</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-12-26T00:29:00-03:00" pubdate data-updated="true">Dec 26<span>th</span>, 2014</time>
-        
-         | <a href="/tutorial-c/blog/2014/12/26/un-tutorial-rapido-para-implementar-y-debuggear-malloc/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><em>Este post es mi traducción del post <a href="http://danluu.com/malloc-tutorial/">A Quick Tutorial on Implementing and Debugging Malloc, Free, Calloc, and Realloc</a> de <a href="https://twitter.com/danluu">Dan Luu</a>. Cualquier error o sugerencia sobre la traducción es bienvenida, y si querés que haga de intermediario para sugerirle cambios de contenido a él, también vale.</em></p>
-
-<p>¡Implementemos nuestro propio <a href="http://man7.org/linux/man-pages/man3/malloc.3.html"><code>malloc</code></a> y veamos cómo funciona con programas pre-existentes!</p>
-
-<p>Este tutorial asume que sabés qué es un puntero, y que <code>*ptr</code> dereferencia un puntero, y que <code>ptr-&gt;foo</code> significa <code>(*ptr).foo</code>, que <code>malloc</code> se usa para <a href="http://duartes.org/gustavo/blog/post/how-the-kernel-manages-your-memory/">reservar (<em>allocar</em>) espacio dinámicamente</a>, y que te es familiar el concepto de lista enlazada. Si decidís seguir este tutorial sin tener un claro conocimiento de C, contame qué partes convendría explicar un poco más. Si querés mirar todo el código de una, está disponible <a href="https://github.com/danluu/malloc-tutorial/blob/master/malloc.c">acá</a>.</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2014/12/26/un-tutorial-rapido-para-implementar-y-debuggear-malloc/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2014/09/04/p-sherman-calle-wallaby-42-sydney/">P. Sherman, Calle Wallaby 42, Sydney</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-04T00:42:00-03:00" pubdate data-updated="true">Sep 4<span>th</span>, 2014</time>
-        
-         | <a href="/tutorial-c/blog/2014/09/04/p-sherman-calle-wallaby-42-sydney/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><blockquote><p>Con algo de suerte, este será el primero de una serie de al menos 3 posts hablando sobre la gestión de la memoria en C. Sólo parece no aportar tanto, pero probablemente entre los 3 den un mensaje más o menos copado. Stay tuned :)</p></blockquote>
-
-
-<p>Una de las complejidades más importantes asociadas a la programación en C es la gestión y el uso de la memoria.</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2014/09/04/p-sherman-calle-wallaby-42-sydney/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2014/09/04/compiladores-y-errores/">Compiladores Y Errores</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-09-04T00:42:00-03:00" pubdate data-updated="true">Sep 4<span>th</span>, 2014</time>
-        
-         | <a href="/tutorial-c/blog/2014/09/04/compiladores-y-errores/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Hace un tiempo me llegó la siguiente consulta por mail:</p>
-
-<blockquote><p>Cuando trato de correr un proceso por consola me tira un mensaje &#8220;violacion de segmento&#8221; (&#8216;core&#8217; generado). Como mi proceso compilaba correctamente, no me tira errores, me resultaba extraño que me tire en tiempo de ejecución ese error.</p><p>Mi pregunta es, ¿puede ser que los errores del segmentation fault no me los alerte en tiempo de compilacion?</p></blockquote>
-
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2014/09/04/compiladores-y-errores/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria/">Ensayo Sobre La Memoria</a></h1>
+      <h1 class="entry-title">Ensayo Sobre La Memoria</h1>
     
     
       <p class="meta">
@@ -236,14 +98,14 @@
 
 <time datetime="2014-09-03T20:23:00-03:00" pubdate data-updated="true">Sep 3<span>rd</span>, 2014</time>
         
-         | <a href="/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria/#disqus_thread">Comments</a>
+         | <a href="#disqus_thread">Comments</a>
         
       </p>
     
   </header>
 
 
-  <div class="entry-content"><p>Una de las complejidades más importantes asociadas a la programación en C es la gestión y el uso de la memoria.</p>
+<div class="entry-content"><p>Una de las complejidades más importantes asociadas a la programación en C es la gestión y el uso de la memoria.</p>
 
 <p>Para un programa C, la memoria de la computadora es poco más que un gran vector (<em>array</em>) de bytes consecutivos. Todos y cada uno de estos bytes tienen una dirección: un número que permite al programa identificar a cada byte unequívocamente. Las direcciones arrancan (como todo en C) por la dirección 0. Y, como suelen representarse en hexa, vamos a decir que el primer byte de memoria es el de la dirección <code>0x0</code>.</p>
 
@@ -320,75 +182,16 @@
 </div>
 
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/">She Bangs, She Bangs&#8230;</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
   
 
+<span class="byline author vcard">Posted by <span class="fn">mgarciaisaia</span></span>
 
-<time datetime="2014-03-20T19:33:00-03:00" pubdate data-updated="true">Mar 20<span>th</span>, 2014</time>
-        
-         | <a href="/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Si alguna vez editaron un script UNIX, seguramente habrán visto que arrancan de manera similar: <code>#!/bin/sh</code>. Por algún motivo, esa línea mágica se llama <a href="0">Shebang</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</p>
-
-<figure class='code'><figcaption><span>mi_script </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/sh</span>
-</span><span class='line'><span class="nb">echo</span> <span class="s2">&quot;¡Hola, mundo!&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Llamamos <code>mi_script</code> a este archivo.</p>
-
-<p>Esa línea mágica es la responsable de que podamos correr un script ejecutando <code>./mi_script</code> en la consola.</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/12/31/me-di-cuenta-que-me-tiraste-la-senal/">Me Dí Cuenta Que Me Tiraste La Señal</a></h1>
-    
-    
-      <p class="meta">
-        
 
 
 
@@ -400,233 +203,48 @@
   
 
 
-<time datetime="2013-12-31T00:27:00-03:00" pubdate data-updated="true">Dec 31<span>st</span>, 2013</time>
-        
-         | <a href="/tutorial-c/blog/2013/12/31/me-di-cuenta-que-me-tiraste-la-senal/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Uno de los mecanismos de <abbr title="Inter-Process Communication - Comunicación entre procesos">IPC</abbr> que nos provee Linux es el envío de señales. Es un modo de comunicación MUY minimalista: un proceso le envía una determinada señal a otro, y este último simplemente recibe el código asociado a la señal recibida.</p>
-
-<p>Y nada más. No hay parámetros, no hay información del emisor, nada. Sólo un código.</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/12/31/me-di-cuenta-que-me-tiraste-la-senal/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
+<time datetime="2014-09-03T20:23:00-03:00" pubdate data-updated="true">Sep 3<span>rd</span>, 2014</time>
       
-  <header>
+
+
+    </p>
     
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/12/30/inotify/">Inotify</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
+      <div class="sharing">
   
-
-
-<time datetime="2013-12-30T02:09:00-03:00" pubdate data-updated="true">Dec 30<span>th</span>, 2013</time>
-        
-         | <a href="/tutorial-c/blog/2013/12/30/inotify/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><blockquote><p>**Disclaimer**: nunca implementé inotify, por lo que este post puede ser incompleto, incorrecto, o cualquier otro &#8220;in&#8221; que se te ocurra. Su espíritu es simplemente poder referenciar acá cada vez que surja un inconveniente con la herramienta, para no repetir lo que escribo siempre, y para cada vez dar una mejor respuesta. Todo aporte será más que bienvenido.</p></blockquote>
-
-
-<p>El mundo real apesta. Existe el hambre, la capa de ozono se debilita, y el software obra de maneras misteriosas.</p>
-
-<p><code>inotify</code> es una API de Linux que nos permite monitorear cambios en un archivo o directorio. En criollo, es un <em>duende</em> al que le pedimos que levante la mano cuando ocurre algún evento que a nosotros nos interese, como la creación de un archivo en un directorio, la eliminación de un archivo o una escritura.</div>
+  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria/" >Tweet</a>
   
   
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/12/30/inotify/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
+  <div class="g-plusone" data-size="small"></div>
   
   
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Bajando El Nivel</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
   
-
-
-<time datetime="2013-10-21T01:19:00-03:00" pubdate data-updated="true">Oct 21<span>st</span>, 2013</time>
-        
-         | <a href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>&ldquo;Che, me acabás de decir que el 0 sigue existiendo por más que <em>lo pise</em> con otro valor. ¿El 0 es un objeto al que la VM le mantiene referencias y por eso no se lo lleva el Garbage Collector?&rdquo;</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/08/20/variables/">Variables</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-08-20T01:21:00-03:00" pubdate data-updated="true">Aug 20<span>th</span>, 2013</time>
-        
-         | <a href="/tutorial-c/blog/2013/08/20/variables/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Bien. Escribimos, compilamos y corrimos nuestro primer programa. Pero es como bastante aburrido, ¿no? Vamos a ponerle onda: declaremos una variable (¡iupi! (¿?))</p>
-
-<figure class='code'><figcaption><span>ok.c (v2) </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">exit_status</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'>  <span class="k">return</span> <span class="n">exit_status</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Guau. Me la jugué :) Anoche no dormí porque me quedé debuggeando un error en este programa.</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/08/20/variables/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/tutorial-c/blog/2013/08/19/arrancando/">Arrancando</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-08-19T21:59:00-03:00" pubdate data-updated="true">Aug 19<span>th</span>, 2013</time>
-        
-         | <a href="/tutorial-c/blog/2013/08/19/arrancando/#disqus_thread">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
-
-<figure class='code'><figcaption><span>ok.c </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Este es (aproximadamente) el programa más chico que podamos hacer en C. <code>main()</code> es la función que se ejecuta al ejecutar un programa C. En este caso, el prototipo de la función es <code>int main(void)</code>: nuestro programa no recibirá parámetros (<code>void</code>), y devolverá a quién lo ejecute un entero signado (<code>int</code>).</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/tutorial-c/blog/2013/08/19/arrancando/">Seguir leyendo&#8230;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/tutorial-c/blog/archives">Blog Archives</a>
-    
-  </div>
 </div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/" title="Previous Post: She bangs, she bangs...">&laquo; She bangs, she bangs...</a>
+      
+      
+        <a class="basic-alignment right" href="/tutorial-c/blog/2014/09/04/compiladores-y-errores/" title="Next Post: Compiladores y errores">Compiladores y errores &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
 <aside class="sidebar">
   
     <section>
-  <h1>Acerca de&#8230;</h1>
+  <h1>Acerca de...</h1>
   <p>Pequeña introducción a C y otras herramientas necesarias para desarrollar el TP de Sistemas Operativos de la UTN FRBA</p>
 </section>
 <section>
@@ -650,7 +268,7 @@
       </li>
     
       <li class="post">
-        <a href="/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/">She Bangs, She Bangs&#8230;</a>
+        <a href="/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/">She Bangs, She Bangs...</a>
       </li>
     
       <li class="post">
@@ -679,7 +297,7 @@
 <section>
   <h1>GitHub Repos</h1>
   <ul id="gh_repos">
-    <li class="loading">Status updating&#8230;</li>
+    <li class="loading">Status updating...</li>
   </ul>
   
   <a href="https://github.com/sisoputnfrba">@sisoputnfrba</a> on GitHub
@@ -712,6 +330,7 @@
   
 </aside>
 
+
     </div>
   </div>
   <footer role="contentinfo"><p>
@@ -726,7 +345,10 @@
       var disqus_shortname = 'tutorialc';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria/';
+        var disqus_url = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

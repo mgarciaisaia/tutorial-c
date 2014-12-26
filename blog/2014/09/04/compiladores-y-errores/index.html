@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Lo C Tutto - C para Operativos</title>
+  <title>Compiladores y errores - C para Operativos</title>
   <meta name="author" content="mgarciaisaia">
 
   
-  <meta name="description" content="Lo C Tutto Aug 22nd, 2013 Lo C Tutto es un tutorial introductorio al lenguaje de progmraación C y varias otras herramientas y conceptos útiles a la &hellip;">
+  <meta name="description" content="Hace un tiempo me llegó la siguiente consulta por mail: Cuando trato de correr un proceso por consola me tira un mensaje &#8220;violacion de segmento &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/lo-c-tutto">
+  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/04/compiladores-y-errores">
   <link href="/tutorial-c/favicon.png" rel="icon">
   <link href="/tutorial-c/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/tutorial-c/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
@@ -76,11 +76,15 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Lo C Tutto</h1>
-    <p class="meta">
+    
+      <h1 class="entry-title">Compiladores Y Errores</h1>
+    
+    
+      <p class="meta">
+        
 
 
 
@@ -92,73 +96,84 @@
   
 
 
-<time datetime="2013-08-22T00:21:00-03:00" pubdate data-updated="true">Aug 22<span>nd</span>, 2013</time></p>
+<time datetime="2014-09-04T00:42:00-03:00" pubdate data-updated="true">Sep 4<span>th</span>, 2014</time>
+        
+         | <a href="#disqus_thread">Comments</a>
+        
+      </p>
+    
   </header>
-  
-  <p>Lo C Tutto es un tutorial introductorio al lenguaje de progmraación C y varias otras herramientas y conceptos útiles a la hora de desarrollar el trabajo práctico de Sistemas Operativos. La idea es avanzar despacio pero a pasos firmes, explicando todo lo que corresponda, y tomándose el tiempo que haga falta.</p>
-
-<p>Probablemente haya conceptos que me pase por alto, pero en principio la idea es explicar de modo tal que una persona que venga sin muchos conocimientos previos pueda entender qué es lo que se espera que haga en la materia.</p>
-
-<p>Como de costumbre, cualquier error, sugerencia o agregado que quieran hacer, pueden contactarme por mail<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>, <a href="https://github.com/mgarciaisaia/tutorial-c/issues">levantar un issue en GitHub</a> o <a href="https://github.com/mgarciaisaia/tutorial-c/fork">enviarme un pull request</a>.</p>
-
-<p>Dejo el índice (el más nuevo primero):</p>
-
-<ul>
-
-<li><a href="/tutorial-c/blog/2013/10/21/bajando-el-nivel/">Bajando el nivel</a></li>
-
-<li><a href="/tutorial-c/blog/2013/08/20/variables/">Variables</a></li>
-
-<li><a href="/tutorial-c/blog/2013/08/19/arrancando/">Arrancando</a></li>
-
-</ul>
 
 
+<div class="entry-content"><p>Hace un tiempo me llegó la siguiente consulta por mail:</p>
 
-<div class="footnotes">
-<hr/>
-<ol>
-<li id="fn:1">
-<p>mgarciaisaia [ arroba ] gmail [ punto ] com<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
-</ol>
+<blockquote><p>Cuando trato de correr un proceso por consola me tira un mensaje &#8220;violacion de segmento&#8221; (&#8216;core&#8217; generado). Como mi proceso compilaba correctamente, no me tira errores, me resultaba extraño que me tire en tiempo de ejecución ese error.</p><p>Mi pregunta es, ¿puede ser que los errores del segmentation fault no me los alerte en tiempo de compilacion?</p></blockquote>
+
+
+<!--more-->
+
+
+<p>¡Claro que el programa puede fallar incluso cuando no tiene problemas de compilación! El software fallaría mucho menos si lo único que necesitáramos es que el compilador reporte cero errores. Pero hay montones de cosas que afectan la ejecución de un programa, y que exceden por completo las capacidades del compilador, y por eso el compilador <strong>no puede</strong> reportarlas.</p>
+
+<p>Un error del compilador significa que el código es sintácticamente inválido, al punto de que el compilador no puede traducir tu texto a código de máquina. Pero entre código válido y código funcional hay un tremendo salto, y entre código válido y código sin errores, puff.</p>
+
+<p>Pero además de detectar código mal formado&#8221;, el compilador tiene los warnings, que son avisos de cosas que probablemente estés haciendo mal. Un programa con warnings compila y puede ejecutarse, pero existe una gran probabilidad de que haya errores lógicos que hagan que funcione de modo inesperado.</p>
+
+<p>Y hasta ahí puede llegar el compilador. Pero hay montones de errores que el compilador no puede detectar, por lo que no es una gran garantía la compilación.</p>
+
+<p>Por esto es que hace años que se viene laburando un montón en crear cosas como los tests, las buenas prácticas, los patrones de diseño, la delegación y encapsulamiento como medios para reutilizar código, la abstracción, etc.
+TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, al punto de que es inviable para cualquier programa más o menos útil.</p>
+
+<p>Así que hay que aprender a bailar con eso.</p>
+
+<p>Segmentation fault, en particular, es un error en tiempo de ejecución, que indica un acceso inválido a memoria.</p>
+
+<p>Lo mejor que podés hacer cuando tenés un problema de memoria en tu código es usar valgrind. Es una herramienta con la que ejecutar tu programa, y que lleva una especie de contabilidad de cómo estas usando la memoria. Cuando tu programa usa erróneamente la memoria (sea un error evitable o uno abortivo), valgrind te informa en qué línea de código intentaste acceder a qué parte de la memoria, y si puede te dice cerca de qué zonas de memoria válidas fue tu acceso (para, por ejemplo, darte cuenta de que estás tratando de escribir un byte de más porque te faltó reservar el espacio para el \0 de un string, ponele).</p>
+
+<p>Busca en el blog de la materia que en la parte de recursos hay un documento que ayuda a entender los reportes de valgrind. El 90% de los problemas los podés atacar con eso.</p>
+
+<p>Además, hay un vídeo en que explico cómo poder inspeccionar con eclipse un proceso que falló, para poder ver el estado de las variables al momento del fallo. Eso ayuda bastante a ver por qué te ocurrió el problema que reporta valgrind cuando no son tan evidentes las causas.</p>
+
+<p>En cuanto a los pseudo ejemplos de código que me pasas, no te olvides que hay una enorme diferencia entre t_estructura y t_estructura *. Una cosa es la estructura (un conjunto de bytes con los datos que estás modelando) y otra es el puntero (unos pocos bytes con la dirección de memoria en que uno espera encontrar la estructura con los datos del modelo).</p>
+
+<p>No te olvides, tampoco, del scope de las variables en tu programa. Las variables locales, almacenadas en el stack (tal como en el tp), sólo viven hasta que finaliza la ejecución de la función en que son declaradas. Si tu función que crea la estructura lo hace en una variable local, al retornar de esa función la memoria en que se almacenó la estructura deja de estar reservada, y puede ser sobreescrita. Entonces puede que tu programa pinche por eso, también.</p>
+
+<p>Y por esto usamos malloc(): reservamos memoria en el heap, que nosotros decidiremos cuándo liberar, pudiendo &ldquo;sobrevivir&rdquo; a la función que la reservó.</p>
+
+<p>Como &ldquo;moraleja&rdquo; número 2 del mail, recorda lo que dijimos en las charlas sobre usar las herramientas adecuadamente.</p>
+
+<p>No le escapes a malloc(). Hay motivos para que exista, y yo te prometo que es desproporcionadamente más fácil aprender a usar malloc y gestionar bien la memoria que aprobar un tp de operativos sin aprenderlo (asumiendo que eso sea posible). Aprovecha, además, que el tp este tiene bastante que ver con la gestión de memoria, y debería aportar en ese sentido.</p>
 </div>
 
 
-  
-    <footer>
-      <p class="meta">
-        
+  <footer>
+    <p class="meta">
+      
   
 
 <span class="byline author vcard">Posted by <span class="fn">mgarciaisaia</span></span>
 
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-08-22T00:21:00-03:00" pubdate data-updated="true">Aug 22<span>nd</span>, 2013</time>
-        
-
-<span class="categories">
-  
-    <a class='category' href='/tutorial-c/blog/categories/lo-c-tutto/'>lo-c-tutto</a>
-  
-</span>
-
-
-      </p>
       
-        <div class="sharing">
+
+
+
+
+
+
+
+
   
-  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/lo-c-tutto/index.html" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/lo-c-tutto/index.html" >Tweet</a>
+
+
+<time datetime="2014-09-04T00:42:00-03:00" pubdate data-updated="true">Sep 4<span>th</span>, 2014</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/04/compiladores-y-errores/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/04/compiladores-y-errores/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="small"></div>
@@ -168,9 +183,16 @@
   
 </div>
 
+    
+    <p class="meta">
       
-    </footer>
-  
+        <a class="basic-alignment left" href="/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria/" title="Previous Post: Ensayo sobre la memoria">&laquo; Ensayo sobre la memoria</a>
+      
+      
+        <a class="basic-alignment right" href="/tutorial-c/blog/2014/09/04/p-sherman-calle-wallaby-42-sydney/" title="Next Post: P. Sherman, Calle Wallaby 42, Sydney">P. Sherman, Calle Wallaby 42, Sydney &raquo;</a>
+      
+    </p>
+  </footer>
 </article>
 
   <section>
@@ -286,8 +308,8 @@
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://mgarciaisaia.github.io/tutorial-c/lo-c-tutto/index.html';
-        var disqus_url = 'http://mgarciaisaia.github.io/tutorial-c/lo-c-tutto/index.html';
+        var disqus_identifier = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/04/compiladores-y-errores/';
+        var disqus_url = 'http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/04/compiladores-y-errores/';
         var disqus_script = 'embed.js';
       
     (function () {
