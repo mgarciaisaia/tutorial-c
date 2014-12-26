@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2014-12-26T00:50:20-03:00</updated>
+  <updated>2014-12-26T19:16:24-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -707,7 +707,7 @@
 
 <p>Un error del compilador significa que el código es sintácticamente inválido, al punto de que el compilador no puede traducir tu texto a código de máquina. Pero entre código válido y código funcional hay un tremendo salto, y entre código válido y código sin errores, puff.</p>
 
-<p>Pero además de detectar código mal formado&#8221;, el compilador tiene los warnings, que son avisos de cosas que probablemente estés haciendo mal. Un programa con warnings compila y puede ejecutarse, pero existe una gran probabilidad de que haya errores lógicos que hagan que funcione de modo inesperado.</p>
+<p>Pero además de &ldquo;detectar código mal formado&rdquo;, el compilador tiene los warnings, que son avisos de cosas que probablemente estés haciendo mal. Un programa con warnings compila y puede ejecutarse, pero existe una gran probabilidad de que haya errores lógicos que hagan que funcione de modo inesperado.</p>
 
 <p>Y hasta ahí puede llegar el compilador. Pero hay montones de errores que el compilador no puede detectar, por lo que no es una gran garantía la compilación.</p>
 
@@ -718,105 +718,21 @@ TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, a
 
 <p>Segmentation fault, en particular, es un error en tiempo de ejecución, que indica un acceso inválido a memoria.</p>
 
-<p>Lo mejor que podés hacer cuando tenés un problema de memoria en tu código es usar valgrind. Es una herramienta con la que ejecutar tu programa, y que lleva una especie de contabilidad de cómo estas usando la memoria. Cuando tu programa usa erróneamente la memoria (sea un error evitable o uno abortivo), valgrind te informa en qué línea de código intentaste acceder a qué parte de la memoria, y si puede te dice cerca de qué zonas de memoria válidas fue tu acceso (para, por ejemplo, darte cuenta de que estás tratando de escribir un byte de más porque te faltó reservar el espacio para el \0 de un string, ponele).</p>
+<p>Lo mejor que podés hacer cuando tenés un problema de memoria en tu código es usar <a href="http://valgrind.org/docs/manual/quick-start.html"><code>valgrind</code></a>. Es una herramienta con la que ejecutar tu programa, y que lleva una especie de <em>contabilidad</em> de cómo estas usando la memoria. Cuando tu programa usa erróneamente la memoria (sea un error evitable o uno abortivo), <code>valgrind</code> te informa en qué línea de código intentaste acceder a qué parte de la memoria, y si puede te dice cerca de qué zonas de memoria válidas fue tu acceso (para, por ejemplo, darte cuenta de que estás tratando de escribir un byte de más porque te faltó reservar el espacio para el <code>\0</code> de un string, ponele).</p>
 
-<p>Busca en el blog de la materia que en la parte de recursos hay un documento que ayuda a entender los reportes de valgrind. El 90% de los problemas los podés atacar con eso.</p>
+<p>Buscá en <a href="http://utn.so/">el blog de la materia</a> que en la parte de <a href="http://www.utn.so/recursos/">recursos</a> hay <a href="http://faq.utn.so/valgrind">un documento que ayuda a entender los reportes de valgrind</a>. El 90% de los problemas los podés atacar con eso.</p>
 
-<p>Además, hay un vídeo en que explico cómo poder inspeccionar con eclipse un proceso que falló, para poder ver el estado de las variables al momento del fallo. Eso ayuda bastante a ver por qué te ocurrió el problema que reporta valgrind cuando no son tan evidentes las causas.</p>
+<p>Además, hay <a href="https://www.youtube.com/watch?v=-CI4MexyU3I">un vídeo en que explico cómo poder inspeccionar con eclipse un proceso que falló</a>, para poder ver el estado de las variables al momento del fallo. Eso ayuda bastante a ver por qué te ocurrió el problema que reporta valgrind cuando no son tan evidentes las causas.</p>
 
-<p>En cuanto a los pseudo ejemplos de código que me pasas, no te olvides que hay una enorme diferencia entre t_estructura y t_estructura *. Una cosa es la estructura (un conjunto de bytes con los datos que estás modelando) y otra es el puntero (unos pocos bytes con la dirección de memoria en que uno espera encontrar la estructura con los datos del modelo).</p>
+<p>En cuanto a los pseudo ejemplos de código que me pasas, no te olvides que hay una enorme diferencia entre <code>t_estructura</code> y <code>t_estructura *</code>. Una cosa es la estructura (un conjunto de bytes con los datos que estás modelando) y otra es el puntero (unos pocos bytes con la dirección de memoria en que uno espera encontrar la estructura con los datos del modelo).</p>
 
-<p>No te olvides, tampoco, del scope de las variables en tu programa. Las variables locales, almacenadas en el stack (tal como en el tp), sólo viven hasta que finaliza la ejecución de la función en que son declaradas. Si tu función que crea la estructura lo hace en una variable local, al retornar de esa función la memoria en que se almacenó la estructura deja de estar reservada, y puede ser sobreescrita. Entonces puede que tu programa pinche por eso, también.</p>
+<p>No te olvides, tampoco, del scope de las variables en tu programa. Las variables locales, almacenadas en el stack (tal como en el TP), sólo viven hasta que finaliza la ejecución de la función en que son declaradas. Si tu función que crea la estructura lo hace en una variable local, al retornar de esa función la memoria en que se almacenó la estructura deja de estar reservada, y puede ser sobreescrita. Entonces puede que tu programa pinche por eso, también.</p>
 
-<p>Y por esto usamos malloc(): reservamos memoria en el heap, que nosotros decidiremos cuándo liberar, pudiendo &ldquo;sobrevivir&rdquo; a la función que la reservó.</p>
+<p>Y por esto usamos <code>malloc()</code>: reservamos memoria en el heap, que nosotros decidiremos cuándo liberar, pudiendo &ldquo;sobrevivir&rdquo; a la función que la reservó.</p>
 
 <p>Como &ldquo;moraleja&rdquo; número 2 del mail, recorda lo que dijimos en las charlas sobre usar las herramientas adecuadamente.</p>
 
-<p>No le escapes a malloc(). Hay motivos para que exista, y yo te prometo que es desproporcionadamente más fácil aprender a usar malloc y gestionar bien la memoria que aprobar un tp de operativos sin aprenderlo (asumiendo que eso sea posible). Aprovecha, además, que el tp este tiene bastante que ver con la gestión de memoria, y debería aportar en ese sentido.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Ensayo sobre la memoria]]></title>
-    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria/"/>
-    <updated>2014-09-03T20:23:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/03/ensayo-sobre-la-memoria</id>
-    <content type="html"><![CDATA[<p>Una de las complejidades más importantes asociadas a la programación en C es la gestión y el uso de la memoria.</p>
-
-<p>Para un programa C, la memoria de la computadora es poco más que un gran vector (<em>array</em>) de bytes consecutivos. Todos y cada uno de estos bytes tienen una dirección: un número que permite al programa identificar a cada byte unequívocamente. Las direcciones arrancan (como todo en C) por la dirección 0. Y, como suelen representarse en hexa, vamos a decir que el primer byte de memoria es el de la dirección <code>0x0</code>.</p>
-
-<p>Es importante recordar que C trabaja con <em>punteros</em> (referencias a direcciones de memoria) <em>absolutos</em>, por lo que, en principio, el byte <code>0x0</code> no será necesariamente el primero de los que use nuestro programa para almacenar datos, sino el primero de la memoria de la computadora<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</p>
-
-<p>Las direcciones son consecutivas, por lo que el byte siguiente al <code>0x0</code> será el <code>0x1</code>, <code>0x2</code>, y así siguiendo. Hablamos en hexa, así que el décimo byte será el <code>0x9</code>, pero el undécimo será <code>0xa</code>, y así.</p>
-
-<p>Pero, en general, uno como programador no usa bytes de memoria, sino una abstracción un poquito por encima: las variables.</p>
-
-<p>Al declarar una variable, le estamos indicando al compilador que reserve una determinada cantidad de bytes de memoria, según el tipo declarado, y además le asociamos un nombre a ese conjunto de bytes, de modo que podamos identificarlo y referirlo de modo más simple.</p>
-
-<p>Es importante recalcar que el nombre de la variable sólo existe hasta la compilación: al ejecutar nuestro programa, todas las referencias a memoria se hacen a través de direcciones y tamaños<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>.</p>
-
-<p>Entonces, así como la declaración <code>unsigned int nombre[10];</code> reserva (en una arquitectura de 32 bits) 40 bytes, la referencia <code>nombre[0]</code> habla de la misma dirección que <code>nombre</code> (por ejemplo, podría referir a <code>0x0842f5</code>), mientras que <code>nombre[2]</code> referirá a la dirección 8 bytes más grande, <code>0x0842fd</code>. Como el tipo de datos es <code>unsigned int</code>, de 32 bits, el compilador sabe cuántos bytes desplazarse para cada elemento (sabiendo, así, que <code>nombre[2]</code> está 8 bytes después de <code>nombre[0]</code>, y no 4, 2, 16 o cualquier otra cantidad), y cuántos bytes a partir de esa dirección tiene que leer para obtener el dato buscado.</p>
-
-<p>Pero estamos en C, y si en algún momento podemos decirle al compilador que entienda las cosas de un modo (en este caso, decirle que entienda la referencia <code>nombre</code> como un vector de diez enteros no signados), entonces probablemente haya forma de decirle que en otro lo entienda de otra forma distinta (por ejemplo, que interprete esos bytes como una cadena de caracteres).</p>
-
-<p>Esa forma existe, y se la llama <strong>casteo de datos</strong>: interpretar a un conjunto de bytes con un tipo de datos arbitrario.</p>
-
-<p>Vamos con un ejemplo:</p>
-
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">char</span> <span class="o">*</span><span class="nf">multiploDeDiecisiete</span><span class="p">(</span><span class="kt">int</span> <span class="n">candidato</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">candidato</span> <span class="o">%</span> <span class="mi">17</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="s">&quot;Es multiplo de 17&quot;</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">return</span> <span class="s">&quot;NO es multiplo de 17&quot;</span><span class="p">;</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">diecisiete</span> <span class="o">=</span> <span class="mi">17</span><span class="p">;</span>
-</span><span class='line'>  <span class="kt">int</span> <span class="n">cincuentaYDos</span> <span class="o">=</span> <span class="mi">52</span><span class="p">;</span>
-</span><span class='line'>  <span class="kt">char</span> <span class="n">cinco</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;cinco&quot;</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">multiploDeDiecisiete</span><span class="p">(</span><span class="n">diecisiete</span><span class="p">));</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">multiploDeDiecisiete</span><span class="p">(</span><span class="n">cincuentaYDos</span><span class="p">));</span>
-</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">multiploDeDiecisiete</span><span class="p">(</span><span class="n">cinco</span><span class="p">));</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Definimos una función <code>multiploDeDiecisiete()</code> que recibe un número entero y devuelve un string en el que dice si ese número es o no múltiplo de 17. Testeamos la función con los números 17 y 52, y parece funcionar.</p>
-
-<p>Pero el último caso es más extraño. Estamos definiendo un vector estático</p>
-<div class="footnotes">
-<hr/>
-<ol>
-<li id="fn:1">
-<p>En particular, el byte <code>0x0</code> suele tener un significado muy especial en la mayoría de los sistemas operativos (<code>NULL</code> suele ser una referencia al <code>0x0</code>), por lo que en la inmensa mayoría de los casos el byte <code>0x0</code> <em>no va</em> a pertenecer a nuestro proceso.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
-<li id="fn:2">
-<p>Cuando indicamos compilar en modo debug, el compilador incluye en el programa final información extra (como los nombres de las variables y funciones) a fin de poder mostrar mensajes de error más apropiados que simplemente muchas direcciones de memoria, pero esta información <strong>NO ES REQUERIDA</strong> para la ejecución del programa.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
-</ol>
-</div>
-
+<p>No le escapes a <code>malloc()</code>. Hay motivos para que exista, y yo te prometo que es desproporcionadamente más fácil aprender a usar <code>malloc</code> y gestionar bien la memoria que aprobar un TP de Operativos sin aprenderlo (asumiendo que eso sea posible). Aprovecha, además, que el TP este tiene bastante que ver con la gestión de memoria, y debería aportar en ese sentido.</p>
 ]]></content>
   </entry>
   
