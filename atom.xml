@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2014-12-26T20:05:38-03:00</updated>
+  <updated>2014-12-26T20:09:07-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -18,7 +18,7 @@
     <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t/"/>
     <updated>2014-12-26T20:05:00-03:00</updated>
     <id>http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t</id>
-    <content type="html"><![CDATA[<p><em>Este post es un laburo en conjunto que hicimos con Micaela Oriolo. Kudos para ella :)</em></p>
+    <content type="html"><![CDATA[<p><em>Este post es un laburo en conjunto que hicimos con <a href="http://github.com/micaelaoriolo">Micaela Oriolo</a>. Kudos para ella :)</em></p>
 
 <blockquote><p>No entiendo qué pito tocan los uint32. ¿Cuándo hay que usarlos sí o sí?</p></blockquote>
 
