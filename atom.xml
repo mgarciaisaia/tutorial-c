@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2014-12-26T19:16:24-03:00</updated>
+  <updated>2014-12-26T19:20:16-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -12,6 +12,52 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Compiladores Y Errores]]></title>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/compiladores-y-errores/"/>
+    <updated>2014-12-26T19:17:00-03:00</updated>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/compiladores-y-errores</id>
+    <content type="html"><![CDATA[<p>Hace un tiempo me llegó la siguiente consulta por mail:</p>
+
+<blockquote><p>Cuando trato de correr un proceso por consola me tira un mensaje &#8220;violacion de segmento&#8221; (&#8216;core&#8217; generado). Como mi proceso compilaba correctamente, no me tira errores, me resultaba extraño que me tire en tiempo de ejecución ese error.</p><p>Mi pregunta es, ¿puede ser que los errores del segmentation fault no me los alerte en tiempo de compilacion?</p></blockquote>
+
+
+<!--more-->
+
+
+<p>¡Claro que el programa puede fallar incluso cuando no tiene problemas de compilación! El software fallaría mucho menos si lo único que necesitáramos es que el compilador reporte cero errores. Pero hay montones de cosas que afectan la ejecución de un programa, y que exceden por completo las capacidades del compilador, y por eso el compilador <strong>no puede</strong> reportarlas.</p>
+
+<p>Un error del compilador significa que el código es sintácticamente inválido, al punto de que el compilador no puede traducir tu texto a código de máquina. Pero entre código válido y código funcional hay un tremendo salto, y entre código válido y código sin errores, puff.</p>
+
+<p>Pero además de &ldquo;detectar código mal formado&rdquo;, el compilador tiene los warnings, que son avisos de cosas que probablemente estés haciendo mal. Un programa con warnings compila y puede ejecutarse, pero existe una gran probabilidad de que haya errores lógicos que hagan que funcione de modo inesperado.</p>
+
+<p>Y hasta ahí puede llegar el compilador. Pero hay montones de errores que el compilador no puede detectar, por lo que no es una gran garantía la compilación.</p>
+
+<p>Por esto es que hace años que se viene laburando un montón en crear cosas como los tests, las buenas prácticas, los patrones de diseño, la delegación y encapsulamiento como medios para reutilizar código, la abstracción, etc.
+TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, al punto de que es inviable para cualquier programa más o menos útil.</p>
+
+<p>Así que hay que aprender a bailar con eso.</p>
+
+<p>Segmentation fault, en particular, es un error en tiempo de ejecución, que indica un acceso inválido a memoria.</p>
+
+<p>Lo mejor que podés hacer cuando tenés un problema de memoria en tu código es usar <a href="http://valgrind.org/docs/manual/quick-start.html"><code>valgrind</code></a>. Es una herramienta con la que ejecutar tu programa, y que lleva una especie de <em>contabilidad</em> de cómo estas usando la memoria. Cuando tu programa usa erróneamente la memoria (sea un error evitable o uno abortivo), <code>valgrind</code> te informa en qué línea de código intentaste acceder a qué parte de la memoria, y si puede te dice cerca de qué zonas de memoria válidas fue tu acceso (para, por ejemplo, darte cuenta de que estás tratando de escribir un byte de más porque te faltó reservar el espacio para el <code>\0</code> de un string, ponele).</p>
+
+<p>Buscá en <a href="http://utn.so/">el blog de la materia</a> que en la parte de <a href="http://www.utn.so/recursos/">recursos</a> hay <a href="http://faq.utn.so/valgrind">un documento que ayuda a entender los reportes de valgrind</a>. El 90% de los problemas los podés atacar con eso.</p>
+
+<p>Además, hay <a href="https://www.youtube.com/watch?v=-CI4MexyU3I">un vídeo en que explico cómo poder inspeccionar con eclipse un proceso que falló</a>, para poder ver el estado de las variables al momento del fallo. Eso ayuda bastante a ver por qué te ocurrió el problema que reporta valgrind cuando no son tan evidentes las causas.</p>
+
+<p>En cuanto a los pseudo ejemplos de código que me pasas, no te olvides que hay una enorme diferencia entre <code>t_estructura</code> y <code>t_estructura *</code>. Una cosa es la estructura (un conjunto de bytes con los datos que estás modelando) y otra es el puntero (unos pocos bytes con la dirección de memoria en que uno espera encontrar la estructura con los datos del modelo).</p>
+
+<p>No te olvides, tampoco, del scope de las variables en tu programa. Las variables locales, almacenadas en el stack (tal como en el TP), sólo viven hasta que finaliza la ejecución de la función en que son declaradas. Si tu función que crea la estructura lo hace en una variable local, al retornar de esa función la memoria en que se almacenó la estructura deja de estar reservada, y puede ser sobreescrita. Entonces puede que tu programa pinche por eso, también.</p>
+
+<p>Y por esto usamos <code>malloc()</code>: reservamos memoria en el heap, que nosotros decidiremos cuándo liberar, pudiendo &ldquo;sobrevivir&rdquo; a la función que la reservó.</p>
+
+<p>Como &ldquo;moraleja&rdquo; número 2 del mail, recorda lo que dijimos en las charlas sobre usar las herramientas adecuadamente.</p>
+
+<p>No le escapes a <code>malloc()</code>. Hay motivos para que exista, y yo te prometo que es desproporcionadamente más fácil aprender a usar <code>malloc</code> y gestionar bien la memoria que aprobar un TP de Operativos sin aprenderlo (asumiendo que eso sea posible). Aprovecha, además, que el TP este tiene bastante que ver con la gestión de memoria, y debería aportar en ese sentido.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Un tutorial rápido para implementar y debuggear malloc, free, calloc y realloc]]></title>
@@ -687,52 +733,6 @@
 </ol>
 </div>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Compiladores y errores]]></title>
-    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/04/compiladores-y-errores/"/>
-    <updated>2014-09-04T00:42:00-03:00</updated>
-    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/04/compiladores-y-errores</id>
-    <content type="html"><![CDATA[<p>Hace un tiempo me llegó la siguiente consulta por mail:</p>
-
-<blockquote><p>Cuando trato de correr un proceso por consola me tira un mensaje &#8220;violacion de segmento&#8221; (&#8216;core&#8217; generado). Como mi proceso compilaba correctamente, no me tira errores, me resultaba extraño que me tire en tiempo de ejecución ese error.</p><p>Mi pregunta es, ¿puede ser que los errores del segmentation fault no me los alerte en tiempo de compilacion?</p></blockquote>
-
-
-<!--more-->
-
-
-<p>¡Claro que el programa puede fallar incluso cuando no tiene problemas de compilación! El software fallaría mucho menos si lo único que necesitáramos es que el compilador reporte cero errores. Pero hay montones de cosas que afectan la ejecución de un programa, y que exceden por completo las capacidades del compilador, y por eso el compilador <strong>no puede</strong> reportarlas.</p>
-
-<p>Un error del compilador significa que el código es sintácticamente inválido, al punto de que el compilador no puede traducir tu texto a código de máquina. Pero entre código válido y código funcional hay un tremendo salto, y entre código válido y código sin errores, puff.</p>
-
-<p>Pero además de &ldquo;detectar código mal formado&rdquo;, el compilador tiene los warnings, que son avisos de cosas que probablemente estés haciendo mal. Un programa con warnings compila y puede ejecutarse, pero existe una gran probabilidad de que haya errores lógicos que hagan que funcione de modo inesperado.</p>
-
-<p>Y hasta ahí puede llegar el compilador. Pero hay montones de errores que el compilador no puede detectar, por lo que no es una gran garantía la compilación.</p>
-
-<p>Por esto es que hace años que se viene laburando un montón en crear cosas como los tests, las buenas prácticas, los patrones de diseño, la delegación y encapsulamiento como medios para reutilizar código, la abstracción, etc.
-TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, al punto de que es inviable para cualquier programa más o menos útil.</p>
-
-<p>Así que hay que aprender a bailar con eso.</p>
-
-<p>Segmentation fault, en particular, es un error en tiempo de ejecución, que indica un acceso inválido a memoria.</p>
-
-<p>Lo mejor que podés hacer cuando tenés un problema de memoria en tu código es usar <a href="http://valgrind.org/docs/manual/quick-start.html"><code>valgrind</code></a>. Es una herramienta con la que ejecutar tu programa, y que lleva una especie de <em>contabilidad</em> de cómo estas usando la memoria. Cuando tu programa usa erróneamente la memoria (sea un error evitable o uno abortivo), <code>valgrind</code> te informa en qué línea de código intentaste acceder a qué parte de la memoria, y si puede te dice cerca de qué zonas de memoria válidas fue tu acceso (para, por ejemplo, darte cuenta de que estás tratando de escribir un byte de más porque te faltó reservar el espacio para el <code>\0</code> de un string, ponele).</p>
-
-<p>Buscá en <a href="http://utn.so/">el blog de la materia</a> que en la parte de <a href="http://www.utn.so/recursos/">recursos</a> hay <a href="http://faq.utn.so/valgrind">un documento que ayuda a entender los reportes de valgrind</a>. El 90% de los problemas los podés atacar con eso.</p>
-
-<p>Además, hay <a href="https://www.youtube.com/watch?v=-CI4MexyU3I">un vídeo en que explico cómo poder inspeccionar con eclipse un proceso que falló</a>, para poder ver el estado de las variables al momento del fallo. Eso ayuda bastante a ver por qué te ocurrió el problema que reporta valgrind cuando no son tan evidentes las causas.</p>
-
-<p>En cuanto a los pseudo ejemplos de código que me pasas, no te olvides que hay una enorme diferencia entre <code>t_estructura</code> y <code>t_estructura *</code>. Una cosa es la estructura (un conjunto de bytes con los datos que estás modelando) y otra es el puntero (unos pocos bytes con la dirección de memoria en que uno espera encontrar la estructura con los datos del modelo).</p>
-
-<p>No te olvides, tampoco, del scope de las variables en tu programa. Las variables locales, almacenadas en el stack (tal como en el TP), sólo viven hasta que finaliza la ejecución de la función en que son declaradas. Si tu función que crea la estructura lo hace en una variable local, al retornar de esa función la memoria en que se almacenó la estructura deja de estar reservada, y puede ser sobreescrita. Entonces puede que tu programa pinche por eso, también.</p>
-
-<p>Y por esto usamos <code>malloc()</code>: reservamos memoria en el heap, que nosotros decidiremos cuándo liberar, pudiendo &ldquo;sobrevivir&rdquo; a la función que la reservó.</p>
-
-<p>Como &ldquo;moraleja&rdquo; número 2 del mail, recorda lo que dijimos en las charlas sobre usar las herramientas adecuadamente.</p>
-
-<p>No le escapes a <code>malloc()</code>. Hay motivos para que exista, y yo te prometo que es desproporcionadamente más fácil aprender a usar <code>malloc</code> y gestionar bien la memoria que aprobar un TP de Operativos sin aprenderlo (asumiendo que eso sea posible). Aprovecha, además, que el TP este tiene bastante que ver con la gestión de memoria, y debería aportar en ese sentido.</p>
 ]]></content>
   </entry>
   
