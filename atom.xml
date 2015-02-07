@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2015-02-07T12:32:17-03:00</updated>
+  <updated>2015-02-07T14:11:58-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -22,6 +22,8 @@
 
 
 <p>Me parece que la clave para entender los enlaces en los filesystems basados en inodos<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> es entender <em>qué es un archivo</em>.<!--more--></p>
+
+<h2>Archivos y directorios</h2>
 
 <p>Un archivo está compuesto por dos partes: su contenido (<em>los bloques de datos</em>) y su metadata (<em>el inodo</em>).</p>
 
@@ -41,6 +43,8 @@
 </span><span class='line'><span class="err">$</span>
 </span></code></pre></td></tr></table></div></figure>
 
+
+<h2>Hard links</h2>
 
 <p>Ahora, ¿qué me impide tener otra entrada de directorio que apunte al inodo 402? En el inodo no hay ninguna referencia del estilo <code>directorioPadre</code> ni nada por el estilo. Tranquilamente podría crear una nueva entrada en ese directorio (o en otro, es indistinto<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>) que apunte al mismo inodo. Asumamos que creamos una entrada para el nombre <code>passwords.txt</code>, que también apunta al inodo 402.</p>
 
@@ -90,9 +94,182 @@
 
 <p><strong>Las dos entradas de directorio referencian al mismo archivo</strong>. Lo que <em>escribo en un archivo se ve reflejado en el otro</em>, pero porque <strong>es mentira que sean dos archivos</strong>: <em>son el mismo</em>. Son <em>dos referencias al mismo objeto</em>.</p>
 
-<p>TODO: no existe &ldquo;el archivo&rdquo; vs &ldquo;sus hard links&rdquo;: todos son iguales. contador de hard links (reference counting wikipedia), comando para crearlos (<code>ln miarchivo.txt passwords.txt</code>), funcionan sólo intra-FS. Ver que las dos entradas apuntan al mismo inodo (<code>ls -i</code>, <code>ls -i1</code>, <code>ls -li</code>)</p>
+<p>Ahora bien, podemos mirar por la consola que esos dos archivos referencian al mismo inodo. La clave está en el switch <code>-i</code> del comando <code>ls</code>, que acá vamos a usar junto con el <code>-1</code> para ver un archivo por línea:</p>
 
-<p>TODO: soft link: es un archivo cuyo contenido es la ruta de otro archivo, más un flag que indica que es un softlink. Tiene un inodo propio, aparte del del archivo apuntado. Es cross-FS. El apuntado no se entera de que existe el soft. Si borro el archivo original, el link queda <em>roto</em> (esa ruta ya deja de apuntar a un archivo válido). Comando para crearlo (<code>ln -s</code>). Leer el target de un softlink (<code>readlink softlink</code>).</p>
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>ls -i1
+</span><span class='line'>402 miarchivo.txt
+</span><span class='line'>402 passwords.txt
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ambas entradas referencian al inodo 402.</p>
+
+<p><strong>Ese es el concepto de hard link</strong>: varias entradas de directorio referenciando al mismo inodo. <em>Varias referencias al mismo archivo</em>.</p>
+
+<p>Pero es interesante que, a partir del momento en que se crea el hard link, ya no existe <em>el archivo</em> y <em>el hard link</em>: el archivo es el inodo, y todas las referencias a inodos son hardlinks. O sea, técnicamente hablando, <em>todas las entradas de directorios son hard links</em>, pero coloquialmente hablando nos referimos a hard links en el momento en que hay más de una entrada refiriendo a ese inodo. Pero es importante tener siempre presente que, a partir de que se crea el hard link (es decir, que se crea la segunda entrada apuntando al mismo inodo), ya no hay diferencia entre la referencia original y la nueva: podríamos borrar <code>miarchivo.txt</code>, y <code>passwords.txt</code> seguiría existiendo y apuntando al mismo contenido. Podríamos crear un tercer hard link, borrar los dos anteriores, y el inodo seguiría siendo el mismo, con el mismo contenido.</p>
+
+<p>Y, ya que estamos, ¿qué pasa si borro un hard link? ¿Cómo se cuándo liberar el inodo y los bloques de datos? Para eliminar un archivo, siempre uso el mismo comando: <code>rm</code>. Y no tengo que especificarle yo si es el último hard link o no, o si liberar o no el inodo: es el FS el que decide eso.</p>
+
+<p>Para eso, el FS usa una técnica llamada <a href="http://en.wikipedia.org/wiki/Reference_counting">reference counting</a><sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup> (conteo de referencias). El inodo tiene un campo en el que se cuenta la cantidad de referencias que hay hacia él en el file system. Al crear un archivo, ese contador arranca en 1 (porque hay una única entrada de directorio que lo apunta), cuando se crea un hard link se aumenta en 1, y cuando se elimina una entrada (<em>se elimina un hard link</em>) se decrementa en 1. Si ese contador llega a 0, el FS libera el inodo y los bloques de datos asociados. De este modo, en el caso de <code>miarchivo.txt</code>, el inodo 402 arrancó con el contador de links en 1, y cuando creamos el hard link <code>passwords.txt</code> pasó a 2. Si ahora borramos alguno de los dos (es indistinto cuál, digamos que hacemos <code>rm miarchivo.txt</code>), se borra la entrada de directorio correspondiente y se decrementa en uno el contador de links del inodo 402, pasando a 1. Si borramos el link que quedaba (<code>rm passwords.txt</code>), el contador de links del inodo 402 pasa a 0, y ahí el FS libera ese inodo y el bloque de datos asociado.</p>
+
+<p>Podemos ver la cantidad de hard links usando <code>ls -l</code> (o combinarlo con <code>-i</code> para ver también el número de inodo):</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>ls -li
+</span><span class='line'>total 2
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 miarchivo.txt
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 passwords.txt
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Esos <code>2</code> que vemos entre los permisos y el owner del archivo es el contador de hard links. Creemos un archivo cualquiera para ver que tiene un único link:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>touch vacio
+</span><span class='line'><span class="nv">$ </span>ls -li
+</span><span class='line'>total 3
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 miarchivo.txt
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 passwords.txt
+</span><span class='line'>406 -rw-r--r--+ 1 mgarcia staff 14 Feb 7 13:27 vacio
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Borremos tanto a <code>vacio</code> como a <code>miarchivo.txt</code> para ver que no les mentí<sup id="fnref:6"><a href="#fn:6" rel="footnote">6</a></sup>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>rm miarchivo.txt vacio
+</span><span class='line'><span class="nv">$ </span>ls -li
+</span><span class='line'>total 1
+</span><span class='line'>402 -rw-r--r--+ 1 mgarcia staff 14 Feb 7 11:53 passwords.txt
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Si borrara <code>passwords.txt</code>, recién ahí se liberaría el inodo 402.</p>
+
+<p>Por último, un detalle de los hard links: toda la relación que existe entre la entrada de directorio y el inodo es el número de inodo. Debido a esto, los hard links sólo pueden realizarse <em>intra-filesystem</em>, es decir, el archivo destino y el directorio que contiene al nuevo link <strong>deben</strong> estar dentro del mismo file system<sup id="fnref:7"><a href="#fn:7" rel="footnote">7</a></sup>. Porque si no, ¿al inodo 402 de qué file system se refiere la entrada? ¿Qué garantías tengo de que el otro filesystem también maneje inodos? Por ese motivo, los hard links son intra-FS.</p>
+
+<p>Y, algo que nos faltaba: ¿con qué creamos el hard link? Con el comando <code>ln</code>:</p>
+
+<figure class='code'><figcaption><span>Esto es lo que ejecuté (hace un rato) para crear passwords.txt </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>ls -li
+</span><span class='line'>total 1
+</span><span class='line'>402 -rw-r--r--+ 1 mgarcia staff 14 Feb 7 11:53 miarchivo.txt
+</span><span class='line'><span class="nv">$ </span>ln miarchivo.txt passwords.txt
+</span><span class='line'><span class="nv">$ </span>ls -li
+</span><span class='line'>total 2
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 miarchivo.txt
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 passwords.txt
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Soft links</h2>
+
+<p>Ahora bien, ¿ya está? Si quiero hacer un enlace a otro FS, ¿<a href="https://youtu.be/Pj1Hgw75V1w">estoy en el horno</a>? Nops: para eso hicieron los soft links :)</p>
+
+<p>Un softlink<sup id="fnref:8"><a href="#fn:8" rel="footnote">8</a></sup> es un <strong>archivo nuevo</strong> que referencia a otra ruta. Creemos uno:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>ls -li
+</span><span class='line'>total 2
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 miarchivo.txt
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 passwords.txt
+</span><span class='line'><span class="nv">$ </span>ln -s miarchivo.txt blandito
+</span><span class='line'><span class="nv">$ </span>ls -li
+</span><span class='line'>total 3
+</span><span class='line'>415 lrwxr-xr-x  1 mgarcia staff 14 Feb 7 13:46 blandito -&gt; miarchivo.txt
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 miarchivo.txt
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 passwords.txt
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Por lo pronto, para crear un soft link le pasamos el parámetro <code>-s</code> a <code>ln</code>. Por otro lado, vemos que se creó una nueva entrada de directorio llamada <code>blandito</code><sup id="fnref:9"><a href="#fn:9" rel="footnote">9</a></sup>, <strong>que tiene su propio inodo</strong>. Es decir, es un archivo completamente separado de los otros. De hecho, tiene sus propios atributos: la <code>l</code> que vemos al principio es la que indica que ese archivo es un softlink. También vemos que el contador de links está en 1, porque, claro, este inodo (el 415) está referenciado únicamente por la entrada de directorio <code>blandito</code>.</p>
+
+<p>Y, si es un inodo aparte, ¿cómo referencia al otro archivo? Bueno, el FS sabe que los archivos con el atributo de enlace (la <code>l</code> esa que vimos en los permisos) son softlinks, y entonces sabe que tiene que tratarlos de manera especial: cuando le pidan leerlo (<code>cat blandito</code>), no va a hacer lo que hacía siempre (abrir el inodo referenciado &ndash; 415 &ndash;, leer su contenido y pasárselo a <code>cat</code>). Por ser un softlink, el contenido que está guardado en el bloque de datos no es el contenido del archivo, si no <strong>la ruta del archivo al que enlaza</strong>. Entonces, al hacer <code>cat blandito</code> el FS abre el inodo 415, ve que es un softlink, lee el bloque de datos, ve que está guardada la ruta <code>miarchivo.txt</code>, y entonces, ahora sí, busca la entrada <code>miarchivo.txt</code>, abre el inodo correspondiente (el viejo y conocido 402), lee el bloque de datos, etc.</p>
+
+<p>¿Se ve la diferencia? <strong>El contenido del softlink dice cuál es el path del archivo al que uno realmente quiere acceder.</strong> Esto es lo que le permite ser cross-FS: el link se puede hacer a, no se, <code>/mount/DVD/autorun.inf</code>, que sea otro FS, y no hay ningún problema: el identificador ya no es el número de inodo, y por eso puede ir a otros FS.</p>
+
+<p>Del <code>ls</code> que hicimos después de crear el softlink tenemos que notar otro detalle: el link count del inodo 402 sigue en 2, <strong>no aumentó a 3</strong>. Esto significa que <strong>el archivo <em>apuntado</em> no se entera de que hay un softlink que lo enlaza</strong>.</p>
+
+<p>El hecho de que el enlace esté hecho a nivel <em>ruta</em> (y no <em>inodo</em>) implica que puedo tener lo que se conoce como <em>enlaces rotos</em>: links que apuntan a archivos que no  existen [más]. Por ejemplo, ¿qué pasa si eliminamos <code>miarchivo.txt</code>? <code>blandito</code> sigue referenciando a un archivo llamado <code>miarchivo.txt</code>, pero ese archivo ya no existe, así que cualquier operación sobre el link va a fallar. No importa que siga existiendo <code>passwords.txt</code>, que sigue apuntando al inodo 402: el link funciona a nivel de paths. Lo mismo ocurre si renombro el archivo <code>miarchivo.txt</code>, o si pongo un archivo distinto llamado <code>miarchivo.txt</code>: el enlace apunta a <em>lo que sea que haya</em> en la ruta <code>miarchivo.txt</code>.</p>
+
+<p>Existe un comando (más <em>low level</em><sup id="fnref:10"><a href="#fn:10" rel="footnote">10</a></sup> que <code>ls -l</code>) para leer el <em>destino</em> de un softlink: <code>readlink</code>.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>readlink blandito
+</span><span class='line'>miarchivo.txt
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Rompamos el enlace:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>mv miarchivo.txt archivo.txt
+</span><span class='line'><span class="nv">$ </span>ls -li
+</span><span class='line'>total 3
+</span><span class='line'>415 lrwxr-xr-x  1 mgarcia staff 14 Feb 7 13:46 blandito -&gt; miarchivo.txt
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 archivo.txt
+</span><span class='line'>402 -rw-r--r--+ 2 mgarcia staff 14 Feb 7 11:53 passwords.txt
+</span><span class='line'><span class="nv">$ </span>cat blandito
+</span><span class='line'>cat: blandito: No such file or directory
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That&rsquo;s it :)</p>
 <div class="footnotes">
 <hr/>
 <ol>
@@ -104,6 +281,18 @@
 <p>Sólo importa que sea dentro del mismo filesystem, ya veremos por qué.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
 <li id="fn:4">
 <p>A esta altura ya te habrás imaginado que tiene bastante sentido aplicar algúna técnica de caché para las entradas de directorios, porque <em>se usan bastante seguido</em>, je :)<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
+<li id="fn:5">
+<p>Como dice el artículo de Wikipedia, la misma idea de reference counting se usa mucho en los garbage collectors de muchos lenguajes de programación de objetos.<a href="#fnref:5" rev="footnote">&#8617;</a></p></li>
+<li id="fn:6">
+<p>Que no les mentí <em>tanto</em>. Estoy inventando un poco esos outputs de los comandos, porque no los estoy corriendo realmente en la consola. Hago pruebas y lo fabrico, pero debería ser consistente.<a href="#fnref:6" rev="footnote">&#8617;</a></p></li>
+<li id="fn:7">
+<p>Sí, en el sistema operativo se pueden (y de hecho, se suelen) montar más de un sistema de archivos. Cuando metés un CD en la máquina, estás montando otro FS. Cuando tenés más de una partición disponible, estás montando más de un sistema de archivos. Incluso cuando tenés una partición de swap, estás montando otro sistema de archivos.<a href="#fnref:7" rev="footnote">&#8617;</a></p></li>
+<li id="fn:8">
+<p>&ldquo;softlink&rdquo;, &ldquo;soft link&rdquo;, &ldquo;enlace dinámico&rdquo;, &ldquo;enlace <em>suave</em>&rdquo;, <em>you name it</em><a href="#fnref:8" rev="footnote">&#8617;</a></p></li>
+<li id="fn:9">
+<p>Lo de <code>-&gt; miarchivo.txt</code> es información que agrega <code>ls</code> para ser <em>más usable</em>, pero esa información <strong>no está guardada en la entrada de directorio</strong>.<a href="#fnref:9" rev="footnote">&#8617;</a></p></li>
+<li id="fn:10">
+<p>En general, trato de usar los comandos de UNIX más <em>cercanos</em> a las llamadas al sistema. <code>ls</code> hace <em>muchas</em> cosas, no existe una llamada al sistema <code>ls</code>, pero sí existe una llamada al sistema <a href="http://linux.die.net/man/2/readlink">readlink</a> (o quizá no se llame así, pero cumple esa tarea específica).<a href="#fnref:10" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
