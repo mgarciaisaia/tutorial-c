@@ -5,15 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Arrancando - C para Operativos</title>
+  <title>Between a rock and a hard link - C para Operativos</title>
   <meta name="author" content="mgarciaisaia">
 
   
-  <meta name="description" content="Vamos a hacer un programa en C, por lo que empezamos con una función: ok.c 1
-2
-3
-int main (void) { return 0;
-} Este es (aproximadamente) el programa &hellip;">
+  <meta name="description" content="¿Qué es un hard link? ¿Qué es un soft link? ¿Qué diferencia hay entre ellos? Me parece que la clave para entender los enlaces en los filesystems &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -22,7 +18,7 @@ int main (void) { return 0;
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando">
+  <link rel="canonical" href="http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/07/between-a-rock-and-a-hard-link">
   <link href="/tutorial-c/favicon.png" rel="icon">
   <link href="/tutorial-c/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/tutorial-c/atom.xml" rel="alternate" title="C para Operativos" type="application/atom+xml">
@@ -84,7 +80,7 @@ int main (void) { return 0;
   
   <header>
     
-      <h1 class="entry-title">Arrancando</h1>
+      <h1 class="entry-title">Between a Rock and a Hard Link</h1>
     
     
       <p class="meta">
@@ -100,7 +96,7 @@ int main (void) { return 0;
   
 
 
-<time datetime="2013-08-19T21:59:00-03:00" pubdate data-updated="true">Aug 19<span>th</span>, 2013</time>
+<time datetime="2015-02-07T11:47:00-03:00" pubdate data-updated="true">Feb 7<span>th</span>, 2015</time>
         
          | <a href="#disqus_thread">Comments</a>
         
@@ -109,85 +105,92 @@ int main (void) { return 0;
   </header>
 
 
-<div class="entry-content"><p>Vamos a hacer un programa en C, por lo que empezamos con una función:</p>
-
-<figure class='code'><figcaption><span>ok.c </span></figcaption>
- <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="entry-content"><blockquote><p>¿Qué es un hard link? ¿Qué es un soft link? ¿Qué diferencia hay entre ellos?</p></blockquote>
 
 
-<p>Este es (aproximadamente) el programa más chico que podamos hacer en C. <code>main()</code> es la función que se ejecuta al ejecutar un programa C. En este caso, el prototipo de la función es <code>int main(void)</code>: nuestro programa no recibirá parámetros (<code>void</code>), y devolverá a quién lo ejecute un entero signado (<code>int</code>).<!--more--></p>
+<p>Me parece que la clave para entender los enlaces en los filesystems basados en inodos<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> es entender <em>qué es un archivo</em>.<!--more--></p>
 
-<p>Nuestro programa tiene una única instrucción: devolver (<code>return</code>) 0, un código de salida que, por convención, indica que el programa ejecutó correctamente.
-Compilemos nuestro programa:</p>
+<p>Un archivo está compuesto por dos partes: su contenido (<em>los bloques de datos</em>) y su metadata (<em>el inodo</em>).</p>
+
+<p>Cuando creo un archivo llamado <code>miarchivo.txt</code> cuyo único contenido es <code>hola</code> (con, por ejemplo, el comando <code>echo hola &gt; miarchivo.txt</code>), en mi FS se reserva un bloque de datos en el que se escriben los 5 bytes <code>hola\n</code><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>, y además se reserva un inodo que se marca como ocupado, en el que se especifica que el contenido del archivo mide 5 bytes, y se establece en el primer puntero del inodo que el primer bloque de datos es el que acabamos de reservar. Se ponen más datos, obviamente, pero por ahora no nos importan.</p>
+
+<p>Y con eso tenemos un archivo, pero nos falta algo importante: referenciarlo. Ese archivo <strong>no tiene nombre</strong>. <em>El inodo no guarda el nombre del archivo</em>. Y yo nunca le pido al sistema operativo que me abra el archivo del inodo 5236: yo le pido rutas. Y una ruta está formada por una lista de directorios, y el nombre del archivo al final.</p>
+
+<p>El nombre existe en el directorio.</p>
+
+<p>Un directorio es un archivo cuyo contenido es una tabla. Cada entrada de esa tabla (las <em>entradas de directorios</em>) relaciona un nombre de archivo con un número de inodo. Al querer abrir un archivo (digamos, <code>miarchivo.txt</code>), el FS busca en esa tabla la entrada con ese nombre, y mira cuál es el número de inodo que le corresponde (digamos, <code>402</code>), y hace todas las operaciones usando ese inodo. Siguiendo el ejemplo, si quisieramos leer todo el archivo <code>miarchivo.txt</code> (<code>cat miarchivo.txt</code>), el FS encuentra la entrada de directorio de ese archivo, lee que le corresponde el inodo 402, abre el inodo 402, mira que mide 5 bytes, busca cuál es el primer bloque de datos, lee los primeros 5 bytes de ese bloque de datos y se los devuelve a <code>cat</code>, que se encarga de imprimirlos por pantalla.</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>gcc ok.c -o ok
-</span><span class='line'><span class="nv">$ </span>ls
-</span><span class='line'>ok.c ok
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat miarchivo.txt
+</span><span class='line'>hola
+</span><span class='line'><span class="err">$</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p><code>gcc</code> es el compilador más usado de C. Parte de la GNU Compiler Collection, <code>gcc</code> es el compilador específico de C (el proyecto se llamaba GNU C Compiler, pero cambiaron el nombre por soportar también C++, Java y tantos otros lenguajes). Como casi todo comando en Linux, Unix y derivados, podemos leer su manual haciendo <code>man gcc</code>.</p>
+<p>Ahora, ¿qué me impide tener otra entrada de directorio que apunte al inodo 402? En el inodo no hay ninguna referencia del estilo <code>directorioPadre</code> ni nada por el estilo. Tranquilamente podría crear una nueva entrada en ese directorio (o en otro, es indistinto<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>) que apunte al mismo inodo. Asumamos que creamos una entrada para el nombre <code>passwords.txt</code>, que también apunta al inodo 402.</p>
 
-<p><code>gcc</code> recibe como parámetro (entre tantos otros) el archivo fuente a compilar (<code>ok.c</code>), y el parámetro <code>-o NOMBRE</code> indica qué nombre queremos darle al binario resultante (<code>ok</code>). De no indicarlo, <code>gcc</code> elije uno <em>hermoso</em>: <code>a.out</code>.</p>
+<p>¿Qué va a ocurrir cuando quiera leer el archivo <code>passwords.txt</code> haciendo <code>cat passwords.txt</code>? Esto:</p>
 
-<p>Ejecutemos:</p>
+<blockquote><p>el FS encuentra la entrada de directorio de ese archivo, lee que le corresponde el inodo 402, abre el inodo 402, mira que mide 5 bytes, busca cuál es el primer bloque de datos, lee los primeros 5 bytes de ese bloque de datos y se los devuelve a `cat`, que se encarga de imprimirlos por pantalla.</p></blockquote>
+
+
+
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./ok
-</span><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$?</span>
-</span><span class='line'>0
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat passwords.txt
+</span><span class='line'>hola
+</span><span class='line'><span class="err">$</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Hay un 0, así que debemos estar <em>no-tan-mal</em>, como mínimo. ¿Qué pasó acá?</p>
+<p>Exactamente lo mismo que hace un rato, porque, a partir de que encontró que el inodo es el 402, el resto va todo igual: el inodo es lo que representa a nuestro archivo en el FS.</p>
 
-<p>En UNIX, la forma de ejecutar un programa es escribiendo como orden la ruta completa al mismo y, luego, separados por espacios, todos sus parámetros. Por ejemplo:</p>
-
-<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>/bin/ps --version
-</span><span class='line'>procps-ng version 3.3.3
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Ejecutamos el programa <code>/bin/ps</code> con el parámetro <code>--version</code>. <code>ps</code> nos contesta la versión que tenemos instalada. En nuestro caso anterior, ejecutamos <code>./ok</code>. <code>.</code> y <code>..</code> son dos enlaces especiales que hay en todo directorio: <code>.</code> enlaza al directorio actual (el propio directorio que contiene a <code>.</code>), y <code>..</code> enlaza al directorio padre del actual (osea, al directorio que contiene al directorio que contiene a <code>..</code>). Entonces, al escribir <code>.</code> ya estamos referenciando toda la ruta al directorio actual. Si estamos ubicados en <code>/home/utnso</code>, <code>.</code> y <code>/home/utnso</code> se refieren al mismo directorio. Agregándole <code>/ok</code> queda <code>./ok</code>, que equivale a <code>/home/utnso/ok</code>, la ruta completa a nuestro programa. Hell yeah, ruta completa => ¡ejecutamos el programa!</p>
-
-<p>&ldquo;Che, pero&hellip; ¡No me mostró nada! ¿Dónde está mi 0?&rdquo;</p>
-
-<p>Bueno, sí, es cierto. No muestra nada porque no le pedimos que muestre nada: nuestro programa sólo devuelve un 0, y nuestra consola sólo ejecuta las instrucciones que le damos. Entonces, pidámosle que muestre el resultado: <code>echo $?</code>.</p>
-
-<p>&ldquo;¡Que te recontra!&rdquo; Bueno, sí. <a href="http://en.wikipedia.org/wiki/Stephen_R._Bourne">El amigo Bourne</a> había faltado a la clase de nombres descriptivos. <code>echo</code> es un comando de las consolas que imprime en pantalla<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> lo que sea que le pasemos por parámetro. Por ejemplo, <code>echo Hola mundo</code> imprime <code>Hola mundo</code>. <code>bash</code> (el lenguaje que interpreta nuestra consola) posee variables, y para dereferenciarlas (leerlas) hay que anteponerle un <code>$</code> al nombre de la variable. Por ejemplo (<code>#</code> es el caracter de comentario):</p>
+<p>Y si quisiera agregarle contenido a <code>miarchivo.txt</code>, ¿qué pasaría? Ejecuto <code>echo clave123 &gt;&gt; miarchivo.txt</code>, y entonces el FS busca la entrada correspondiente a <code>miarchivo.txt</code>, encuentra que corresponde al inodo 402, va al inodo 402, ve que mide 5 bytes y que si le agrega los 9 bytes correspondientes a <code>clave123\n</code> sigue entrando en el primer bloque de datos, entonces abre el primer bloque de datos, y a partir del sexto byte escribe ese contenido. Por último, anota en el inodo que el archivo ahora pesa 14 bytes, cierra el archivo, y todos felices. Si ahora hacemos <code>cat miarchivo.txt</code>, encuentra la entrada de directorio<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>, abre el inodo 402, abre el bloque de datos, lee los 14 bytes, se los devuelve a <code>cat</code>, y <code>cat</code> los imprime por pantalla.</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
 <span class='line-number'>3</span>
 <span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ nombre</span> <span class="o">=</span> <span class="s2">&quot;Mundo&quot;</span> <span class="c"># asigno &quot;Mundo&quot; a la variable nombre, creandola si no existe</span>
-</span><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="nv">$nombre</span> <span class="c"># imprimo el contenido de la variable llamada nombre</span>
-</span><span class='line'>Mundo
-</span><span class='line'><span class="nv">$ </span><span class="nb">echo</span> <span class="s2">&quot;Hola $nombre&quot;</span>
-</span><span class='line'>Hola Mundo
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat miarchivo.txt
+</span><span class='line'>hola
+</span><span class='line'>clave123
+</span><span class='line'><span class="err">$</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>En particular, nosotros le habíamos pedido mostrar una variable: <code>$?</code>. <code>?</code> es una variable manejada automáticamente por Bash. Cada vez que ejecuta una instrucción, Bash almacena en <code>?</code> el código de salida del programa ejecutado. Por eso, al pedirle que imprima la variable <code>?</code> (<code>echo $?</code>), Bash nos mostró el 0 que nuestro programa había devuelto.</p>
+<p>¿Y si ahora leo el contenido de <code>passwords.txt</code>? Bueno, <em>leo la entrada de directorio de <code>passwords.txt</code>, veo que es el inodo 402, abro el inodo, veo que mide 14 bytes, abro el primer bloque de datos, leo los 14 bytes, y se los devuelvo a <code>cat</code> para que los imprima en pantalla</em>.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat passwords.txt
+</span><span class='line'>hola
+</span><span class='line'>clave123
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Las dos entradas de directorio referencian al mismo archivo</strong>. Lo que <em>escribo en un archivo se ve reflejado en el otro</em>, pero porque <strong>es mentira que sean dos archivos</strong>: <em>son el mismo</em>. Son <em>dos referencias al mismo objeto</em>.</p>
+
+<p>TODO: no existe &ldquo;el archivo&rdquo; vs &ldquo;sus hard links&rdquo;: todos son iguales. contador de hard links (reference counting wikipedia), comando para crearlos (<code>ln miarchivo.txt passwords.txt</code>), funcionan sólo intra-FS. Ver que las dos entradas apuntan al mismo inodo (<code>ls -i</code>, <code>ls -i1</code>, <code>ls -li</code>)</p>
+
+<p>TODO: soft link: es un archivo cuyo contenido es la ruta de otro archivo, más un flag que indica que es un softlink. Tiene un inodo propio, aparte del del archivo apuntado. Es cross-FS. El apuntado no se entera de que existe el soft. Si borro el archivo original, el link queda <em>roto</em> (esa ruta ya deja de apuntar a un archivo válido). Comando para crearlo (<code>ln -s</code>). Leer el target de un softlink (<code>readlink softlink</code>).</p>
 <div class="footnotes">
 <hr/>
 <ol>
 <li id="fn:1">
-<p>En realidad, imprime en la salida estándar, ya lo veremos más adelante. Por ahora, creeme que es la pantalla.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<p>Existen los enlaces en FAT, pero funcionan a otro nivel, me disgustan, me caen mal, y voy a ignorarlos rotundamente :)<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>Por defecto, <code>echo</code> imprime un salto de línea, y por eso el <code>\n</code> al final del contenido. Se puede evitar el <code>\n</code> final haciendo <code>echo -n</code>.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p>Sólo importa que sea dentro del mismo filesystem, ya veremos por qué.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<li id="fn:4">
+<p>A esta altura ya te habrás imaginado que tiene bastante sentido aplicar algúna técnica de caché para las entradas de directorios, porque <em>se usan bastante seguido</em>, je :)<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
@@ -213,21 +216,15 @@ Compilemos nuestro programa:</p>
   
 
 
-<time datetime="2013-08-19T21:59:00-03:00" pubdate data-updated="true">Aug 19<span>th</span>, 2013</time>
+<time datetime="2015-02-07T11:47:00-03:00" pubdate data-updated="true">Feb 7<span>th</span>, 2015</time>
       
-
-<span class="categories">
-  
-    <a class='category' href='/tutorial-c/blog/categories/lo-c-tutto/'>lo-c-tutto</a>
-  
-</span>
 
 
     </p>
     
       <div class="sharing">
   
-  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando/" >Tweet</a>
+  <a href="/tutorial-c//twitter.com/share" class="twitter-share-button" data-url="http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/07/between-a-rock-and-a-hard-link/" data-via="" data-counturl="http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/07/between-a-rock-and-a-hard-link/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="small"></div>
@@ -240,8 +237,8 @@ Compilemos nuestro programa:</p>
     
     <p class="meta">
       
+        <a class="basic-alignment left" href="/tutorial-c/blog/2014/12/26/int-vs-int32-t/" title="Previous Post: int vs int32_t">&laquo; int vs int32_t</a>
       
-        <a class="basic-alignment right" href="/tutorial-c/blog/2013/08/20/variables/" title="Next Post: Variables">Variables &raquo;</a>
       
     </p>
   </footer>
@@ -364,8 +361,8 @@ Compilemos nuestro programa:</p>
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando/';
-        var disqus_url = 'http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando/';
+        var disqus_identifier = 'http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/07/between-a-rock-and-a-hard-link/';
+        var disqus_url = 'http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/07/between-a-rock-and-a-hard-link/';
         var disqus_script = 'embed.js';
       
     (function () {

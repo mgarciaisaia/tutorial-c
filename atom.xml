@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2014-12-26T20:11:29-03:00</updated>
+  <updated>2015-02-07T12:32:17-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -12,6 +12,103 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Between a rock and a hard link]]></title>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/07/between-a-rock-and-a-hard-link/"/>
+    <updated>2015-02-07T11:47:00-03:00</updated>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/07/between-a-rock-and-a-hard-link</id>
+    <content type="html"><![CDATA[<blockquote><p>¿Qué es un hard link? ¿Qué es un soft link? ¿Qué diferencia hay entre ellos?</p></blockquote>
+
+
+<p>Me parece que la clave para entender los enlaces en los filesystems basados en inodos<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup> es entender <em>qué es un archivo</em>.<!--more--></p>
+
+<p>Un archivo está compuesto por dos partes: su contenido (<em>los bloques de datos</em>) y su metadata (<em>el inodo</em>).</p>
+
+<p>Cuando creo un archivo llamado <code>miarchivo.txt</code> cuyo único contenido es <code>hola</code> (con, por ejemplo, el comando <code>echo hola &gt; miarchivo.txt</code>), en mi FS se reserva un bloque de datos en el que se escriben los 5 bytes <code>hola\n</code><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>, y además se reserva un inodo que se marca como ocupado, en el que se especifica que el contenido del archivo mide 5 bytes, y se establece en el primer puntero del inodo que el primer bloque de datos es el que acabamos de reservar. Se ponen más datos, obviamente, pero por ahora no nos importan.</p>
+
+<p>Y con eso tenemos un archivo, pero nos falta algo importante: referenciarlo. Ese archivo <strong>no tiene nombre</strong>. <em>El inodo no guarda el nombre del archivo</em>. Y yo nunca le pido al sistema operativo que me abra el archivo del inodo 5236: yo le pido rutas. Y una ruta está formada por una lista de directorios, y el nombre del archivo al final.</p>
+
+<p>El nombre existe en el directorio.</p>
+
+<p>Un directorio es un archivo cuyo contenido es una tabla. Cada entrada de esa tabla (las <em>entradas de directorios</em>) relaciona un nombre de archivo con un número de inodo. Al querer abrir un archivo (digamos, <code>miarchivo.txt</code>), el FS busca en esa tabla la entrada con ese nombre, y mira cuál es el número de inodo que le corresponde (digamos, <code>402</code>), y hace todas las operaciones usando ese inodo. Siguiendo el ejemplo, si quisieramos leer todo el archivo <code>miarchivo.txt</code> (<code>cat miarchivo.txt</code>), el FS encuentra la entrada de directorio de ese archivo, lee que le corresponde el inodo 402, abre el inodo 402, mira que mide 5 bytes, busca cuál es el primer bloque de datos, lee los primeros 5 bytes de ese bloque de datos y se los devuelve a <code>cat</code>, que se encarga de imprimirlos por pantalla.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat miarchivo.txt
+</span><span class='line'>hola
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ahora, ¿qué me impide tener otra entrada de directorio que apunte al inodo 402? En el inodo no hay ninguna referencia del estilo <code>directorioPadre</code> ni nada por el estilo. Tranquilamente podría crear una nueva entrada en ese directorio (o en otro, es indistinto<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>) que apunte al mismo inodo. Asumamos que creamos una entrada para el nombre <code>passwords.txt</code>, que también apunta al inodo 402.</p>
+
+<p>¿Qué va a ocurrir cuando quiera leer el archivo <code>passwords.txt</code> haciendo <code>cat passwords.txt</code>? Esto:</p>
+
+<blockquote><p>el FS encuentra la entrada de directorio de ese archivo, lee que le corresponde el inodo 402, abre el inodo 402, mira que mide 5 bytes, busca cuál es el primer bloque de datos, lee los primeros 5 bytes de ese bloque de datos y se los devuelve a `cat`, que se encarga de imprimirlos por pantalla.</p></blockquote>
+
+
+
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat passwords.txt
+</span><span class='line'>hola
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Exactamente lo mismo que hace un rato, porque, a partir de que encontró que el inodo es el 402, el resto va todo igual: el inodo es lo que representa a nuestro archivo en el FS.</p>
+
+<p>Y si quisiera agregarle contenido a <code>miarchivo.txt</code>, ¿qué pasaría? Ejecuto <code>echo clave123 &gt;&gt; miarchivo.txt</code>, y entonces el FS busca la entrada correspondiente a <code>miarchivo.txt</code>, encuentra que corresponde al inodo 402, va al inodo 402, ve que mide 5 bytes y que si le agrega los 9 bytes correspondientes a <code>clave123\n</code> sigue entrando en el primer bloque de datos, entonces abre el primer bloque de datos, y a partir del sexto byte escribe ese contenido. Por último, anota en el inodo que el archivo ahora pesa 14 bytes, cierra el archivo, y todos felices. Si ahora hacemos <code>cat miarchivo.txt</code>, encuentra la entrada de directorio<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>, abre el inodo 402, abre el bloque de datos, lee los 14 bytes, se los devuelve a <code>cat</code>, y <code>cat</code> los imprime por pantalla.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat miarchivo.txt
+</span><span class='line'>hola
+</span><span class='line'>clave123
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>¿Y si ahora leo el contenido de <code>passwords.txt</code>? Bueno, <em>leo la entrada de directorio de <code>passwords.txt</code>, veo que es el inodo 402, abro el inodo, veo que mide 14 bytes, abro el primer bloque de datos, leo los 14 bytes, y se los devuelvo a <code>cat</code> para que los imprima en pantalla</em>.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>cat passwords.txt
+</span><span class='line'>hola
+</span><span class='line'>clave123
+</span><span class='line'><span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Las dos entradas de directorio referencian al mismo archivo</strong>. Lo que <em>escribo en un archivo se ve reflejado en el otro</em>, pero porque <strong>es mentira que sean dos archivos</strong>: <em>son el mismo</em>. Son <em>dos referencias al mismo objeto</em>.</p>
+
+<p>TODO: no existe &ldquo;el archivo&rdquo; vs &ldquo;sus hard links&rdquo;: todos son iguales. contador de hard links (reference counting wikipedia), comando para crearlos (<code>ln miarchivo.txt passwords.txt</code>), funcionan sólo intra-FS. Ver que las dos entradas apuntan al mismo inodo (<code>ls -i</code>, <code>ls -i1</code>, <code>ls -li</code>)</p>
+
+<p>TODO: soft link: es un archivo cuyo contenido es la ruta de otro archivo, más un flag que indica que es un softlink. Tiene un inodo propio, aparte del del archivo apuntado. Es cross-FS. El apuntado no se entera de que existe el soft. Si borro el archivo original, el link queda <em>roto</em> (esa ruta ya deja de apuntar a un archivo válido). Comando para crearlo (<code>ln -s</code>). Leer el target de un softlink (<code>readlink softlink</code>).</p>
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>Existen los enlaces en FAT, pero funcionan a otro nivel, me disgustan, me caen mal, y voy a ignorarlos rotundamente :)<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>Por defecto, <code>echo</code> imprime un salto de línea, y por eso el <code>\n</code> al final del contenido. Se puede evitar el <code>\n</code> final haciendo <code>echo -n</code>.<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p>Sólo importa que sea dentro del mismo filesystem, ya veremos por qué.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<li id="fn:4">
+<p>A esta altura ya te habrás imaginado que tiene bastante sentido aplicar algúna técnica de caché para las entradas de directorios, porque <em>se usan bastante seguido</em>, je :)<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[int vs int32_t]]></title>
