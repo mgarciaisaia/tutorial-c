@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2015-02-09T11:36:02-03:00</updated>
+  <updated>2015-02-09T15:47:53-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -292,6 +292,13 @@
 <p><img src="http://mgarciaisaia.github.io/tutorial-c/assets/shortcut-windows-xp.gif" alt="Abriendo accesos directos con notepado en Windows XP" /></p>
 
 <p>En Unix/ext, el propio sistema de archivos se encarga de resolver el enlace al abrir un softlink, por lo que siempre vemos el contenido del destino<sup id="fnref:15"><a href="#fn:15" rel="footnote">15</a></sup>.</p>
+
+<h2>Links útiles</h2>
+
+<ul>
+<li><a href="http://teaching.idallen.com/dat2330/04f/notes/links_and_inodes.html">http://teaching.idallen.com/dat2330/04f/notes/links_and_inodes.html</a></li>
+</ul>
+
 <div class="footnotes">
 <hr/>
 <ol>
@@ -314,7 +321,7 @@
 <li id="fn:9">
 <p>Lo de <code>-&gt; miarchivo.txt</code> es información que agrega <code>ls</code> para ser <em>más usable</em>, pero esa información <strong>no está guardada en la entrada de directorio</strong>.<a href="#fnref:9" rev="footnote">&#8617;</a></p></li>
 <li id="fn:10">
-<p>Existen optimizaciones (llamadas <em>fast symlinks</em>) que permiten guardar la ruta directamente en el inodo (cuando entra) en lugar de reservar un bloque de datos únicamente para escribir un path cortito, pero esa diferencia no hace al concepto de symlink.<a href="#fnref:10" rev="footnote">&#8617;</a></p></li>
+<p>La enorme mayoría de las implementaciones de ext optimizan el uso de disco almacenando la ruta destino <em>en el inodo</em> en lugar de en un bloque de datos aparte (escribiéndola en la zona reservada para los punteros a bloques de datos). De hecho, <a href="http://www.nongnu.org/ext2-doc/ext2.html#DEF-SYMBOLIC-LINKS">la especificación de ext2 dice que ese es el modo de hacerlo</a> (digamos, no lo nombra como un opcional). De todos modos, esto es una optimización de espacio, y no hace diferencias importantes a la hora de entender el concepto del symlink.<a href="#fnref:10" rev="footnote">&#8617;</a></p></li>
 <li id="fn:11">
 <p>En general, trato de usar los comandos de UNIX más <em>cercanos</em> a las llamadas al sistema. <code>ls</code> hace <em>muchas</em> cosas, no existe una llamada al sistema <code>ls</code>, pero sí existe una llamada al sistema <a href="http://linux.die.net/man/2/readlink">readlink</a> (o quizá no se llame así, pero cumple esa tarea específica).<a href="#fnref:11" rev="footnote">&#8617;</a></p></li>
 <li id="fn:12">
