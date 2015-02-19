@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2015-02-09T15:47:53-03:00</updated>
+  <updated>2015-02-19T20:31:37-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -12,6 +12,221 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Aprendiendo Assembler para entender C]]></title>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/19/aprendiendo-assembler-para-entender-c/"/>
+    <updated>2015-02-19T19:10:00-03:00</updated>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/19/aprendiendo-assembler-para-entender-c</id>
+    <content type="html"><![CDATA[<p><em>Este post es mi traducción del post <a href="https://www.hackerschool.com/blog/7-understanding-c-by-learning-assembly">Understanding C by learning assembly</a> de <a href="https://github.com/davidbalbert">David Albert</a>. Cualquier error o sugerencia sobre la traducción es bienvenida, y si querés que haga de intermediario para sugerirle cambios de contenido a él, también vale.</em></p>
+
+<p>La última vez, <a href="https://github.com/happy4crazy">Alan</a> mostró cómo usar <a href="https://www.hackerschool.com/blog/5-learning-c-with-gdb">GDB como una herramienta para aprender C</a>. Hoy quiero ir un paso más allá y usar GDB para ayudarnos a entender assembler, también.</p>
+
+<p>Las capas de abstracción son grandes herramientas para construir cosas, pero a veces pueden interponerse en el aprendizaje. Mi objetivo en este post es convencerte de que para aprender C rigurosamente, también necesitamos entender el código assembler que nuestro compilador de C genera. Voy a hacer esto mostrándote cómo desensamblar y leer un programa simple con GDB, y después vamos a usar GDB y nuestro conocimiento de assembler para entender cómo funcionan las variables locales estáticas en C.</p>
+
+<p><em>Nota: todo el código en este post fue compilado en una CPU x86_64 corriendo Mac OS X 10.8.1, usando Clang 4.0 con las optimizaciones deshabilitadas (<code>-O0</code>)<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</em></p>
+
+<h2>Aprendiendo assembler con GDB</h2>
+
+<p>Empecemos por desensamblar un programa con GDB y aprender a leer su salida. Tipeá el siguiente programa en un archivo de texto y grabalo como <code>simple.c</code>:</p>
+
+<figure class='code'><figcaption><span>sample.c </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">6</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ahora compilalo con los símbolos de depuración y sin optimizaciones, y corré GDB<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ CFLAGS</span><span class="o">=</span><span class="s2">&quot;-g -O0&quot;</span> make simple
+</span><span class='line'>cc -g -O0    simple.c   -o simple
+</span><span class='line'><span class="nv">$ </span>gdb simple
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Dentro de GDB, pongamos un breakpoint en <code>main</code> y ejecutemos hasta llegar al <code>return</code>. Ponemos el número 2 después de <code>next</code> para especificar que queremos ejecutar el comando <code>next</code> dos veces:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="n">main</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">run</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">next</span> <span class="mi">2</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ahora usemos el comando <code>disassemble</code> para mostrar las instrucciones assembler de la función actual. También podés pasarle el nombre de una función a <code>disassemble</code> para examinar una función diferente.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">disassemble</span>
+</span><span class='line'><span class="n">Dump</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">code</span> <span class="k">for</span> <span class="n">function</span> <span class="n">main</span><span class="o">:</span>
+</span><span class='line'><span class="mh">0x0000000100000f50</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">0</span><span class="o">&gt;:</span>    <span class="n">push</span>   <span class="o">%</span><span class="n">rbp</span>
+</span><span class='line'><span class="mh">0x0000000100000f51</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">1</span><span class="o">&gt;:</span>    <span class="n">mov</span>    <span class="o">%</span><span class="n">rsp</span><span class="p">,</span><span class="o">%</span><span class="n">rbp</span>
+</span><span class='line'><span class="mh">0x0000000100000f54</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">4</span><span class="o">&gt;:</span>    <span class="n">mov</span>    <span class="err">$</span><span class="mh">0x0</span><span class="p">,</span><span class="o">%</span><span class="n">eax</span>
+</span><span class='line'><span class="mh">0x0000000100000f59</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">9</span><span class="o">&gt;:</span>    <span class="n">movl</span>   <span class="err">$</span><span class="mh">0x0</span><span class="p">,</span><span class="o">-</span><span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span><span class='line'><span class="mh">0x0000000100000f60</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">16</span><span class="o">&gt;:</span>   <span class="n">movl</span>   <span class="err">$</span><span class="mh">0x5</span><span class="p">,</span><span class="o">-</span><span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span><span class='line'><span class="mh">0x0000000100000f67</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">23</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="o">-</span><span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">),</span><span class="o">%</span><span class="n">ecx</span>
+</span><span class='line'><span class="mh">0x0000000100000f6a</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">26</span><span class="o">&gt;:</span>   <span class="n">add</span>    <span class="err">$</span><span class="mh">0x6</span><span class="p">,</span><span class="o">%</span><span class="n">ecx</span>
+</span><span class='line'><span class="mh">0x0000000100000f70</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">32</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="o">%</span><span class="n">ecx</span><span class="p">,</span><span class="o">-</span><span class="mh">0xc</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span><span class='line'><span class="mh">0x0000000100000f73</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">35</span><span class="o">&gt;:</span>   <span class="n">pop</span>    <span class="o">%</span><span class="n">rbp</span>
+</span><span class='line'><span class="mh">0x0000000100000f74</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">36</span><span class="o">&gt;:</span>   <span class="n">retq</span>
+</span><span class='line'><span class="n">End</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">dump</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>El comando <code>disassemble</code> defaultea a mostrar las instrucciones en la sintaxis de AT&amp;T, que es la misma sintaxis usada por el assembler de GNU<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>. Las instrucciones en la sintaxis AT&amp;T son del formato <code>mnemónico origen, destino</code>. El mnemónico es el nombre <em>humanamente legible</em><sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup> de la instrucción. <code>origen</code> y <code>destino</code> son operandos, que pueden ser valores inmediatos, registros, direcciones de memoria o etiquetas. Los valores inmediatos son constantes, y están prefijados por un <code>$</code>. Por ejemplo, <code>$0x5</code> representa al número 5 en hexadecimal. Los nombres de registros están prefijados por un <code>%</code>.</p>
+
+<h3>Registros</h3>
+
+<p>Vale la pena dedicarle un ratito a entender los registros. Los registros son porciones de almacenamiento de datos que se encuentran directamente en el CPU. Salvo algunas excepciones, el tamaño, o <em>ancho</em>, de los registros de una CPU definen su arquitectura. Entonces, si tenés una CPU de 64 bits, tus registros van a medir 64 bits. Lo mismo ocurre con las CPUs de 32 bits (registros de 32 bits), 16 bits, y así<sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup>. Los registros son de muy rápido acceso, y en general son los operandos de las operaciones aritméticas y lógicas.</p>
+
+<p>La familia x86 tiene registros de propósito general y de propósito específico. Los de propósito general pueden usarse para cualquier operación, y su valor no tiene un significado especial para la CPU. En cambio, la CPU depende de ciertos registros de propósito específico para su propia operación, y los valores que en ellos se almacenan tienen un significado especial según el registro de que se trate. En nuestro ejemplo anterior, <code>%eax</code> y <code>%ecx</code> son registros de propósito general, mientras que <code>%rbp</code> y <code>%rsp</code> son de propósito específico. <code>%rbp</code> es el <em>base pointer</em> (puntero base), que apunta a la base del marco actual dentro del stack (<em>current stack frame</em>), y <code>%rsp</code> es el <em>stack pointer</em> (puntero al stack), que apunta al tope del stack frame actual. <code>%rbp</code> siempre tiene un valor mayor a <code>%rsp</code> porque el stack comienza en una dirección de memoria alta y crece hacia abajo. Si no te es muy familiar el concepto de stack de llamadas, podés encontrar <a href="http://en.wikipedia.org/wiki/Call_stack">una buena introducción en Wikipedia</a> (y <a href="http://es.wikipedia.org/wiki/Pila_de_llamadas">acá en español</a>).</p>
+
+<p>Un detalle de la familia x86 es que mantuvo compatibilidad hacia atrás desde el procesador 8086, de 16 bits. A medida que el x86 avanzó de 16 bits a 32, y de 32 a 64, los registros se expandieron y fueron tomando nuevos nombres, de modo de no romper la compatibilidad con código escrito para CPUs anteriores, menos anchos.</p>
+
+<p>Tomemos de ejemplo al registro <code>AX</code> de propósito general, de 16 bits. El byte <em>alto</em> puede accederse con el nombre <code>AH</code> (<em>A High</em>), y el bajo con <code>AL</code> (<em>A Low</em>). Cuando salió el 80386, de 32 bits, el registro AX Extendido (<em>Extended AX</em>, <code>EAX</code>) refirió al registro de 32 bits, mientras que <code>AX</code> se siguió refiriendo al registro formado por los 16 bits de la mitad baja del <code>EAX</code>. Del mismo modo, al salir la arquitectura x86_64, se usó el prefijo <code>R</code>, y el <code>EAX</code> pasó a ser la mitad baja del registro <code>RAX</code>, de 64 bits. Este es un diagrama basado en un <a href="http://en.wikipedia.org/wiki/X86#x86_registers">artículo de Wikipedia</a> para visualizar estas relaciones:</p>
+
+<figure class='code'><figcaption><span>Subdivisiones de los registros en x86_64 </span></figcaption>
+<div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>|__64__|__56__|__48__|__40__|__32__|__24__|__16__|__8___|
+</span><span class='line'>|__________________________RAX__________________________|
+</span><span class='line'>|xxxxxxxxxxxxxxxxxxxxxxxxxxx|____________EAX____________|
+</span><span class='line'>|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|_____AX______|
+</span><span class='line'>|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx|__AH__|__AL__|</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Volviendo al código</h3>
+
+<p>Ya deberíamos tener información suficiente para entender nuestro programa desensamblado:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="mh">0x0000000100000f50</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">0</span><span class="o">&gt;:</span>    <span class="n">push</span>   <span class="o">%</span><span class="n">rbp</span>
+</span><span class='line'><span class="mh">0x0000000100000f51</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">1</span><span class="o">&gt;:</span>    <span class="n">mov</span>    <span class="o">%</span><span class="n">rsp</span><span class="p">,</span><span class="o">%</span><span class="n">rbp</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Las primeras dos instrucciones se llaman el <em>prólogo</em> o <em>preámbulo</em> de una función. Primero <code>push</code>eamos el antiguo base pointer al stack para guardarlo para más tarde. Después copiamos el valor del stack pointer al base pointer. Después de esto, <code>%rbp</code> apunta a la base del stack frame de <code>main</code>.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="mh">0x0000000100000f54</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">4</span><span class="o">&gt;:</span>    <span class="n">mov</span>    <span class="err">$</span><span class="mh">0x0</span><span class="p">,</span><span class="o">%</span><span class="n">eax</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Esta instrucción copia un 0 a <code>%eax</code>. La convención de llamadas (<em>calling convention</em>) del x86 dice que el valor de retorno de una función debe almacenarse en <code>%eax</code>, de modo que esta instrucción prepara el <code>return 0</code> al final de nuestra función.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="mh">0x0000000100000f59</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">9</span><span class="o">&gt;:</span>    <span class="n">movl</span>   <span class="err">$</span><span class="mh">0x0</span><span class="p">,</span><span class="o">-</span><span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Acá vemos algo que no habíamos visto antes: <code>-0x4(%rbp)</code>. Los paréntesis nos indican que eso es una dirección de memoria. En este caso, <code>%rbp</code> es el registro base, y <code>-0x4</code> es el desplazamiento. Esto es equivalente a <code>%rbp + -0x4</code>. Como el stack crece hacia abajo, restarle 4 a la base del stack frame actual nos mueve dentro del frame mismo, donde se almacenan las variables locales. Esto significa que esta instrucción almacena un 0 en <code>%rbp - 4</code>. Me llevó un rato entender para qué era esta línea, pero parece que clang <a href="http://lists.cs.uiuc.edu/pipermail/cfe-dev/2012-February/019767.html">reserva una variable local oculta</a> para un valor de retorno implícito de <code>main</code>.</p>
+
+<p>También habrás notado que el mnemónico tiene el sufijo <code>l</code>. Esto significa que los operandos van a ser de tipo <code>l</code>ong (32 bits, para los enteros). Otros sufijos válidos son <code>b</code>yte, <code>s</code>hort, <code>q</code>uad y <code>t</code>en. Si ves una instrucción que no tiene un sufijo, el tamaño de los operandos se infiere de los tamaños de los registros origen y destino. Por ejemplo, en la línea anterior, <code>%eax</code> mide 32 bits, por lo que la instrucción <code>mov</code> se infiere a <code>movl</code>.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="mh">0x0000000100000f60</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">16</span><span class="o">&gt;:</span>   <span class="n">movl</span>   <span class="err">$</span><span class="mh">0x5</span><span class="p">,</span><span class="o">-</span><span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>¡Ahora estamos llegando a la papa de nuestro programa! Esta primer línea de assembler es la primera línea de C en <code>main</code>, y almacena el número 5 en el espacio de la próxima variable local (<code>%rbp - 0x8</code>), 4 bytes debajo de nuestra última variable local. Esa es la posición de <code>a</code>. Podemos usar GDB para verificarlo:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="o">&amp;</span><span class="n">a</span>
+</span><span class='line'><span class="mh">0x7fff5fbff768</span><span class="o">:</span> <span class="mh">0x00000005</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="err">$</span><span class="n">rbp</span> <span class="o">-</span> <span class="mi">8</span>
+</span><span class='line'><span class="mh">0x7fff5fbff768</span><span class="o">:</span> <span class="mh">0x00000005</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Fijate que las direcciones de memoria son las mismas. Vas a notar que GDB tiene variables que representan nuestros registros, pero como todas las variables en GDB, las prefijamos con <code>$</code> en vez del <code>%</code> usado en el assembler de AT&amp;T.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="mh">0x0000000100000f67</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">23</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="o">-</span><span class="mh">0x8</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">),</span><span class="o">%</span><span class="n">ecx</span>
+</span><span class='line'><span class="mh">0x0000000100000f6a</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">26</span><span class="o">&gt;:</span>   <span class="n">add</span>    <span class="err">$</span><span class="mh">0x6</span><span class="p">,</span><span class="o">%</span><span class="n">ecx</span>
+</span><span class='line'><span class="mh">0x0000000100000f70</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">32</span><span class="o">&gt;:</span>   <span class="n">mov</span>    <span class="o">%</span><span class="n">ecx</span><span class="p">,</span><span class="o">-</span><span class="mh">0xc</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Entonces movemos (<code>mov</code>) <code>a</code> a <code>%ecx</code>, uno de nuestros registros de propósito general, le sumamos (<code>add</code>) 6, y almacenamos el resultado en <code>%rbp - 0xc</code>. Esta es la segunda línea de C en <code>main</code>. Quizá te diste cuenta que <code>%rbp - 0xc</code> es <code>b</code>, cosa que podemos verificar en GDB:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="o">&amp;</span><span class="n">b</span>
+</span><span class='line'><span class="mh">0x7fff5fbff764</span><span class="o">:</span> <span class="mh">0x0000000b</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="err">$</span><span class="n">rbp</span> <span class="o">-</span> <span class="mh">0xc</span>
+</span><span class='line'><span class="mh">0x7fff5fbff764</span><span class="o">:</span> <span class="mh">0x0000000b</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>El resto de <code>main</code> es simplemente limpieza, llamado el <em>epílogo</em> de la función:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="mh">0x0000000100000f73</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">35</span><span class="o">&gt;:</span>   <span class="n">pop</span>    <span class="o">%</span><span class="n">rbp</span>
+</span><span class='line'><span class="mh">0x0000000100000f74</span> <span class="o">&lt;</span><span class="n">main</span><span class="o">+</span><span class="mi">36</span><span class="o">&gt;:</span>   <span class="n">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>pop</code>eamos el viejo base pointer del stack y lo devolvemos al <code>%rbp</code>, y luego <code>retq</code> nos devuelve a nuestra dirección de retorno, que también está almacenada en el stack frame.</p>
+
+<p>Hasta ahora, usamos GDB para desensamblar un pequeño programa C, le pegamos un vistazo a cómo leer la sintaxis de assembler de AT&amp;T, y hablamos un poco de los operandos de registros y direcciones de memoria. También usamos GDB para verificar dónde se almacenan nuestras variables locales en relación a <code>%rbp</code>. Ahora vamos a ver cómo usar nuestras nuevas habilidades para explicar cómo funcionan las variables locales estáticas.</p>
+
+<p><em>(continuará&hellip;)</em></p>
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>Lo de que es en OS X no es porque me haga el careta usando Mac, si no porque el post original estaba así, y todavía no tengo la sopa/tiempo/ganas de hacer todo lo mismo pero en Linux con <code>gcc</code> :)<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p>Tal vez notes que usamos Make para buildear <code>simple.c</code> sin un makefile. Podemos hacerlo porque Make tiene reglas implícitas para buildear ejecutables a partir de archivos C. Podés encontrar más información sobre esas reglas en el <a href="http://www.gnu.org/software/make/manual/make.html#Implicit-Rules">manual de Make</a><a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p>También podés hacer que GDB muestre la sintaxis de Intel, usada por NASM, MASM y otros assemblers, pero eso se va del alcance del post.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<li id="fn:4">
+<p>Con <em>humanamente legible</em> quiere decir <em><strong>Joaco</strong>-humanamente legible</em>, pero bue&hellip;<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
+<li id="fn:5">
+<p>Los procesadores con sets de instrucciones SIMD (como MMX y SSE para x86, y AltiVec para PowerPC) suelen tener algunos registros que son más anchos que la arquitectura de la CPU.<a href="#fnref:5" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Between a rock and a hard link]]></title>
