@@ -110,7 +110,7 @@ Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></
 
 <p>La última vez, <a href="https://github.com/happy4crazy">Alan</a> mostró cómo usar <a href="https://www.hackerschool.com/blog/5-learning-c-with-gdb">GDB como una herramienta para aprender C</a>. Hoy quiero ir un paso más allá y usar GDB para ayudarnos a entender assembler, también.</p>
 
-<p>Las capas de abstracción son grandes herramientas para construir cosas, pero a veces pueden interponerse en el aprendizaje. Mi objetivo en este post es convencerte de que para aprender C rigurosamente, también necesitamos entender el código assembler que nuestro compilador de C genera. Voy a hacer esto mostrándote cómo desensamblar y leer un programa simple con GDB, y después vamos a usar GDB y nuestro conocimiento de assembler para entender cómo funcionan las variables locales estáticas en C.</p>
+<p>Las capas de abstracción son grandes herramientas para construir cosas, pero a veces pueden interponerse en el aprendizaje. Mi objetivo en este post es convencerte de que para aprender C rigurosamente, también necesitamos entender el código assembler que nuestro compilador de C genera. Voy a hacer esto mostrándote cómo desensamblar y leer un programa simple con GDB, y después vamos a usar GDB y nuestro conocimiento de assembler para entender cómo funcionan las variables locales estáticas en C.<!--more--></p>
 
 <p><em>Nota: todo el código en este post fue compilado en una CPU x86_64 corriendo Mac OS X 10.8.1, usando Clang 4.0 con las optimizaciones deshabilitadas (<code>-O0</code>)<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</em></p>
 
@@ -296,20 +296,291 @@ Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></
 
 <p>Hasta ahora, usamos GDB para desensamblar un pequeño programa C, le pegamos un vistazo a cómo leer la sintaxis de assembler de AT&amp;T, y hablamos un poco de los operandos de registros y direcciones de memoria. También usamos GDB para verificar dónde se almacenan nuestras variables locales en relación a <code>%rbp</code>. Ahora vamos a ver cómo usar nuestras nuevas habilidades para explicar cómo funcionan las variables locales estáticas.</p>
 
-<p><em>(continuará&hellip;)</em></p>
+<h2>Entendiendo las variables estáticas locales</h2>
+
+<p>Las variables estáticas locales son una característica muy copada de C. En dos palabras, son variables locales que se inicializan una única vez y persisten sus valores a través de las sucesivas llamadas a la función en que fueron definidas. Un caso de uso bastante simple de las variables estáticas locales es un generador <em>à la</em> Python. Este ejemplo genera todos los números naturales hasta <code>INT_MAX</code>:</p>
+
+<figure class='code'><figcaption><span>static.c </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cm">/* static.c */</span>
+</span><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="kt">int</span> <span class="nf">natural_generator</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">static</span> <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">b</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">natural_generator</span><span class="p">());</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">natural_generator</span><span class="p">());</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;%d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">natural_generator</span><span class="p">());</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Cuando lo compilamos y ejecutamos, este programa imprime los primeros tres números naturales:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ CFLAGS</span><span class="o">=</span><span class="s2">&quot;-g -O0&quot;</span> make static
+</span><span class='line'>cc -g -O0    static.c   -o static
+</span><span class='line'><span class="nv">$ </span>./static
+</span><span class='line'>1
+</span><span class='line'>2
+</span><span class='line'>3
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Pero, ¿cómo funciona esto? Para entender las estáticas locales, vamos a meternos en GDB y mirar el assembler. Saqué las direcciones que muestra GDB al desensamblado para que entre en la pantalla:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="err">$</span> <span class="n">gdb</span> <span class="k">static</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="n">natural_generator</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">run</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">disassemble</span>
+</span><span class='line'><span class="n">Dump</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">code</span> <span class="k">for</span> <span class="n">function</span> <span class="n">natural_generator</span><span class="o">:</span>
+</span><span class='line'><span class="n">push</span>   <span class="o">%</span><span class="n">rbp</span>
+</span><span class='line'><span class="n">mov</span>    <span class="o">%</span><span class="n">rsp</span><span class="p">,</span><span class="o">%</span><span class="n">rbp</span>
+</span><span class='line'><span class="n">movl</span>   <span class="err">$</span><span class="mh">0x1</span><span class="p">,</span><span class="o">-</span><span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span><span class='line'><span class="n">mov</span>    <span class="mh">0x177</span><span class="p">(</span><span class="o">%</span><span class="n">rip</span><span class="p">),</span><span class="o">%</span><span class="n">eax</span>        <span class="err">#</span> <span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;</span>
+</span><span class='line'><span class="n">add</span>    <span class="err">$</span><span class="mh">0x1</span><span class="p">,</span><span class="o">%</span><span class="n">eax</span>
+</span><span class='line'><span class="n">mov</span>    <span class="o">%</span><span class="n">eax</span><span class="p">,</span><span class="mh">0x16c</span><span class="p">(</span><span class="o">%</span><span class="n">rip</span><span class="p">)</span>        <span class="err">#</span> <span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;</span>
+</span><span class='line'><span class="n">mov</span>    <span class="o">-</span><span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">),</span><span class="o">%</span><span class="n">eax</span>
+</span><span class='line'><span class="n">add</span>    <span class="mh">0x163</span><span class="p">(</span><span class="o">%</span><span class="n">rip</span><span class="p">),</span><span class="o">%</span><span class="n">eax</span>        <span class="err">#</span> <span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;</span>
+</span><span class='line'><span class="n">pop</span>    <span class="o">%</span><span class="n">rbp</span>
+</span><span class='line'><span class="n">retq</span>
+</span><span class='line'><span class="n">End</span> <span class="n">of</span> <span class="n">assembler</span> <span class="n">dump</span><span class="p">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Lo primero que necesitamos descubrir es en qué instrucción estamos. Podemos hacer eso examinando el &ldquo;instruction pointer&rdquo; (<em>puntero de instrucción</em>) o &ldquo;program counter&rdquo; (<em>contador de programa</em>). El instruction pointer es un registro que almacena la dirección de memoria de la próxima instrucción. En x86_64, ese registro es <code>%rip</code>. Podemos acceder al instruction pointer usando la variable <code>$rip</code>, o podemos usar <code>$pc</code>, la alternativa independiente de la plataforma:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="n">i</span> <span class="err">$</span><span class="n">pc</span>
+</span><span class='line'><span class="mh">0x100000e94</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="o">+</span><span class="mi">4</span><span class="o">&gt;:</span>  <span class="n">movl</span>   <span class="err">$</span><span class="mh">0x1</span><span class="p">,</span><span class="o">-</span><span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>El instruction pointer siempre contiene la dirección de la <em>próxima</em> instrucción a ejecutar, lo que significa que la tercer instrucción aún no se ejecutó, pero está a punto.</p>
+
+<p>Como es bastante útil conocer la próxima instrucción, vamos a hacer que GDB nos muestre la próxima instrucción cada vez que frenamos el programa. A partir de GDB 7.0, podés ejecutar <code>set disassemble-next-line on</code>, que muestra todas las instrucciones que conforman la próxima instrucción fuente, pero estamos usando Mac OS X, que trae GDB 6.3, así que vamos a tener que recurrir al comando <code>display</code>. <code>display</code> es como <code>x</code>, sólo que evalúa la expresión cada vez que nuestro programa se detiene:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">display</span><span class="o">/</span><span class="n">i</span> <span class="err">$</span><span class="n">pc</span>
+</span><span class='line'><span class="mi">1</span><span class="o">:</span> <span class="n">x</span><span class="o">/</span><span class="n">i</span> <span class="err">$</span><span class="n">pc</span>  <span class="mh">0x100000e94</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="o">+</span><span class="mi">4</span><span class="o">&gt;:</span>  <span class="n">movl</span>   <span class="err">$</span><span class="mh">0x1</span><span class="p">,</span><span class="o">-</span><span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ahora GDB está listo para mostrarnos siempre la próxima instrucción a ejecutar antes del prompt.</p>
+
+<p>Ya pasamos el prólogo de la función, del que hablamos antes, así que vamos a empezar en la tercer instrucción. Esto corresponde a la primer línea de código que asigna 1 a <code>a</code>. En lugar de <code>next</code>, que nos mueve a la próxima instrucción fuente, vamos a usar <code>nexti</code>, que nos mueve a la próxima instrucción assembler. Después, vamos a examinar <code>%rbp - 0x4</code> para verificar nuestra hipótesis de que <code>a</code> se almacena en <code>%rbp - 0x4</code>.</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">nexti</span>
+</span><span class='line'><span class="mi">7</span>           <span class="n">b</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'><span class="mi">1</span><span class="o">:</span> <span class="n">x</span><span class="o">/</span><span class="n">i</span> <span class="err">$</span><span class="n">pc</span>  <span class="n">mov</span>   <span class="mh">0x177</span><span class="p">(</span><span class="o">%</span><span class="n">rip</span><span class="p">),</span><span class="o">%</span><span class="n">eax</span> <span class="err">#</span> <span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="err">$</span><span class="n">rbp</span> <span class="o">-</span> <span class="mh">0x4</span>
+</span><span class='line'><span class="mh">0x7fff5fbff78c</span><span class="o">:</span> <span class="mh">0x00000001</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="o">&amp;</span><span class="n">a</span>
+</span><span class='line'><span class="mh">0x7fff5fbff78c</span><span class="o">:</span> <span class="mh">0x00000001</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Son lo mismo, tal como esperábamos. La próxima instrucción es más interesante:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="n">mov</span>    <span class="mh">0x177</span><span class="p">(</span><span class="o">%</span><span class="n">rip</span><span class="p">),</span><span class="o">%</span><span class="n">eax</span>        <span class="err">#</span> <span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Acá es donde esperaríamos encontrar la línea <code>static int b = -1;</code>, pero se ve substancialmente distinta de cualquier otra cosa que hayamos visto antes. Por empezar, no hay referencia al stack frame, donde esperaríamos encontrar las variables locales. ¡Ni siquiera hay un <code>-0x1</code>! En cambio, tenemos una instrucción que carga <code>0x100001018</code>, ubicada en algún lugar después del instruction pointer, a <code>%eax</code>. GDB nos da un comentario bastante útil con el resultado del cálculo del operando en memoria, y nos da una pista diciéndonos que <code>natural_generator.b</code> se encuentra en esa dirección. Corramos esta instrucción y veamos qué pasa:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">nexti</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">p</span> <span class="err">$</span><span class="n">rax</span>
+</span><span class='line'><span class="err">$</span><span class="mi">3</span> <span class="o">=</span> <span class="mi">4294967295</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">p</span><span class="o">/</span><span class="n">x</span> <span class="err">$</span><span class="n">rax</span>
+</span><span class='line'><span class="err">$</span><span class="mi">5</span> <span class="o">=</span> <span class="mh">0xffffffff</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Por más que el desensamblado muestre <code>%eax</code> como destino, nosotros imprimimos <code>$rax</code>, porque GDB sólo nos provee variables para los registros completos.</p>
+
+<p>En este momento necesitamos recordar que, mientras que las variables tienen tipos que especifican si son signadas o no, los registros no, por lo que GDB imprime el valor de <code>%rax</code> sin signo. Probemos de nuevo, casteando <code>%rax</code> a un <code>int</code> signado:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">p</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="err">$</span><span class="n">rax</span>
+</span><span class='line'><span class="err">$</span><span class="mi">11</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Parece que encontramos a <code>b</code>. Podemos re-chequear esto usando el comando <code>x</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="n">d</span> <span class="mh">0x100001018</span>
+</span><span class='line'><span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;:</span>  <span class="o">-</span><span class="mi">1</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="n">d</span> <span class="o">&amp;</span><span class="n">b</span>
+</span><span class='line'><span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;:</span>  <span class="o">-</span><span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Entonces, no es sólo que <code>b</code> está en una dirección de memoria baja, fuera del stack, si no que además se la inicializa a -1 antes de que se llame a <code>natural_generator</code>. De hecho, incluso si desensamblaras el programa completo, no encontrarías ningún código que setteara <code>b</code> a -1. Esto ocurre porque el valor de <code>b</code> se hardcodea en otra sección del ejecutable <code>sample</code>, y el loader del sistema operativo lo carga en memoria junto con todo el código de máquina cuando se lanza el proceso<sup id="fnref:6"><a href="#fn:6" rel="footnote">6</a></sup>.</p>
+
+<p>Después de todo esto, las cosas empiezan a tener más sentido. Tras almacenar <code>b</code> en <code>%eax</code>, pasamos a la próxima instrucción fuente, en la que incrementamos <code>b</code>. Esto se corresponde a las próximas dos instrucciones:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="n">add</span>    <span class="err">$</span><span class="mh">0x1</span><span class="p">,</span><span class="o">%</span><span class="n">eax</span>
+</span><span class='line'><span class="n">mov</span>    <span class="o">%</span><span class="n">eax</span><span class="p">,</span><span class="mh">0x16c</span><span class="p">(</span><span class="o">%</span><span class="n">rip</span><span class="p">)</span>        <span class="err">#</span> <span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Acá le agregamos (<code>add</code>) 1 a <code>%eax</code>, y almacenamos el resultado en la memoria. Corramos estas instrucciones y verifiquemos el resultado:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">nexti</span> <span class="mi">2</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="n">d</span> <span class="o">&amp;</span><span class="n">b</span>
+</span><span class='line'><span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;:</span>  <span class="mi">0</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">p</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="err">$</span><span class="n">rax</span>
+</span><span class='line'><span class="err">$</span><span class="mi">15</span> <span class="o">=</span> <span class="mi">0</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Las próximas dos instrucciones nos preparan para devolver <code>a + b</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="n">mov</span>    <span class="o">-</span><span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">),</span><span class="o">%</span><span class="n">eax</span>
+</span><span class='line'><span class="n">add</span>    <span class="mh">0x163</span><span class="p">(</span><span class="o">%</span><span class="n">rip</span><span class="p">),</span><span class="o">%</span><span class="n">eax</span>        <span class="err">#</span> <span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Acá cargamos <code>a</code> en <code>%eax</code>, y luego le sumamos <code>b</code>. En este punto, esperaríamos que <code>%eax</code> valga 1. Verifiquemos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">nexti</span> <span class="mi">2</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">p</span> <span class="err">$</span><span class="n">rax</span>
+</span><span class='line'><span class="err">$</span><span class="mi">16</span> <span class="o">=</span> <span class="mi">1</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Se usa <code>%eax</code> para almacenar el valor de retorno de <code>natural_generator</code>, así que estamos listos para el epílogo, que limpia el stack y retorna:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="n">pop</span>    <span class="o">%</span><span class="n">rbp</span>
+</span><span class='line'><span class="n">retq</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ahora que entendemos cómo se inicializa <code>b</code>, veamos qué pasa cuando corremos <code>natural_generator</code> otra vez:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">continue</span>
+</span><span class='line'><span class="n">Continuing</span><span class="p">.</span>
+</span><span class='line'><span class="mi">1</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Breakpoint</span> <span class="mi">1</span><span class="p">,</span> <span class="n">natural_generator</span> <span class="p">()</span> <span class="n">at</span> <span class="k">static</span><span class="p">.</span><span class="n">c</span><span class="o">:</span><span class="mi">5</span>
+</span><span class='line'><span class="mi">5</span>           <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span><span class='line'><span class="mi">1</span><span class="o">:</span> <span class="n">x</span><span class="o">/</span><span class="n">i</span> <span class="err">$</span><span class="n">pc</span>  <span class="mh">0x100000e94</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="o">+</span><span class="mi">4</span><span class="o">&gt;:</span>  <span class="n">movl</span>   <span class="err">$</span><span class="mh">0x1</span><span class="p">,</span><span class="o">-</span><span class="mh">0x4</span><span class="p">(</span><span class="o">%</span><span class="n">rbp</span><span class="p">)</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span> <span class="o">&amp;</span><span class="n">b</span>
+</span><span class='line'><span class="mh">0x100001018</span> <span class="o">&lt;</span><span class="n">natural_generator</span><span class="p">.</span><span class="n">b</span><span class="o">&gt;:</span>  <span class="mi">0</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Como <code>b</code> no está almacenada en el stack junto con las otras variables locales, al volver a llamar a <code>natural_generator</code> sigue valiendo 0. No importa cuántas veces llamemos a nuestro generador, <code>b</code> siempre va a retener su valor. Esto ocurre porque está almacenada fuera del stack, y es inicializada cuando el loader mueve el programa a memoria en lugar de por nuestor código máquina.</p>
+
+<h2>Conclusión</h2>
+
+<p>Comenzamos viendo cómo leer assembler y cómo desensamblar un programa con GDB. Luego, vimos cómo funcionan las variables estáticas locales, cosa que no podríamos haber hecho sin desensamblar nuestro ejecutable.</p>
+
+<p>Pasamos mucho tiempo alternando entre leer instrucciones assembler y verificando nuestras hipótesis en GDB. Puede parecer repetitivo, pero hay una razón muy importante para hacerlo así: la mejor manera de aprender algo abstracto es volverlo más concreto, y una de las mejores maneras de hacer más concreto a algo es usando herramientas que te dejen sacarle capas de abstracción. La mejor manera de aprender estas herramientas es forzándote a usarlas hasta que te sean naturales.</p>
 <div class="footnotes">
 <hr/>
 <ol>
 <li id="fn:1">
-<p>Lo de que es en OS X no es porque me haga el careta usando Mac, si no porque el post original estaba así, y todavía no tengo la sopa/tiempo/ganas de hacer todo lo mismo pero en Linux con <code>gcc</code> :)<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<p><strong>NdeT</strong>: Lo de que es en OS X no es porque me haga el careta usando Mac, si no porque el post original estaba así, y todavía no tengo la sopa/tiempo/ganas de hacer todo lo mismo pero en Linux con <code>gcc</code> :)<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
 <li id="fn:2">
 <p>Tal vez notes que usamos Make para buildear <code>simple.c</code> sin un makefile. Podemos hacerlo porque Make tiene reglas implícitas para buildear ejecutables a partir de archivos C. Podés encontrar más información sobre esas reglas en el <a href="http://www.gnu.org/software/make/manual/make.html#Implicit-Rules">manual de Make</a><a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
 <li id="fn:3">
 <p>También podés hacer que GDB muestre la sintaxis de Intel, usada por NASM, MASM y otros assemblers, pero eso se va del alcance del post.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
 <li id="fn:4">
-<p>Con <em>humanamente legible</em> quiere decir <em><strong>Joaco</strong>-humanamente legible</em>, pero bue&hellip;<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
+<p><strong>NdeT</strong>: Con <em>humanamente legible</em> quiere decir <em><strong>Joaco</strong>-humanamente legible</em>, pero bue&hellip;<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
 <li id="fn:5">
 <p>Los procesadores con sets de instrucciones SIMD (como MMX y SSE para x86, y AltiVec para PowerPC) suelen tener algunos registros que son más anchos que la arquitectura de la CPU.<a href="#fnref:5" rev="footnote">&#8617;</a></p></li>
+<li id="fn:6">
+<p>Reservamos para un post futuro la discusión sobre formatos de objeto, loaders y linkers.<a href="#fnref:6" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
