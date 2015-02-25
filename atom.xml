@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2015-02-20T00:57:10-03:00</updated>
+  <updated>2015-02-24T23:56:16-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -12,6 +12,398 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Aprendiendo C con GDB]]></title>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/24/aprendiendo-c-con-gdb/"/>
+    <updated>2015-02-24T22:07:00-03:00</updated>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/24/aprendiendo-c-con-gdb</id>
+    <content type="html"><![CDATA[<p><em>Este post es mi traducción del post <a href="https://www.hackerschool.com/blog/5-learning-c-with-gdb">Learning C with GDB</a> de <a href="https://github.com/happy4crazy">Alan O&#8217;Donnell</a>, del blog de <a href="https://www.hackerschool.com/">Hacker School</a>. La traducción fue hecha con el permiso de Hacker School, y obviamente todos los derechos sobre el post original les pertenecen a ellos.
+Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></p>
+
+<p>Viniendo del mundo de lenguajes de más alto nivel como Ruby, Scheme o Haskell, aprender C puede ser complicado. Además de tener que pelear con las características de bajo nivel de C como el manejo manual de memoria y los punteros, tenés que arreglártelas sin un REPL. Una vez que te acostumbrás a programar explorando en un REPL, tener que lidiar con el ciclo escribir-compilar-correr es bastante un desalentador.</p>
+
+<p>Hace poco se me ocurrió que podría usar <code>gdb</code> como un pseudo-REPL para C. Estuve experimentando el uso de <code>gdb</code> como una herramienta para aprender C, en lugar de simplemente para debuggear C, y está bastante bueno.</p>
+
+<p>Mi objetivo en este post es mostrarte que <code>gdb</code> es una gran herramienta para aprender C. Te voy a mostrar algunos de mis comandos de <code>gdb</code> favoritos, y después te voy a mostrar cómo podés usar <code>gdb</code> para entender una parte bastante complicada de C: la diferencia entre los arrays y los punteros.<!-- more --></p>
+
+<h2>Una introducción a GDB</h2>
+
+<p>Empecemos creando este pequeño programa C, <code>minimal.c</code>:</p>
+
+<figure class='code'><figcaption><span>minimal.c </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1337</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Notá que el programa no hace nada, y ni siquiera tiene un <code>printf</code><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>. ¡Bienvenido al nuevo mundo de aprender C con <code>gdb</code>!</p>
+
+<p>Compilalo con la opción <code>-g</code> para que <code>gdb</code> tenga información de debug, y después correlo con <code>gdb</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>gcc -g minimal.c -o minimal
+</span><span class='line'><span class="nv">$ </span>gdb minimal
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ahora deberías encontrarte con el prompt bastante austero de <code>gdb</code>. Te prometí un REPL, así que acá va:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span>
+</span><span class='line'><span class="err">$</span><span class="mi">1</span> <span class="o">=</span> <span class="mi">3</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>¡Excelente! <code>print</code> es un built-in de <code>gdb</code> que imprime el resultado de evaluar una expresión de C. Si en algún momento tenés dudas sobre el funcionamiento de un comando de <code>gdb</code>, probá corriendo <code>help nombre-del-comando</code>.</p>
+
+<p>Acá hay un ejemplo un poco más interesante:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gbd</span><span class="p">)</span> <span class="n">print</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span> <span class="mi">2147483648</span>
+</span><span class='line'><span class="err">$</span><span class="mi">2</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2147483648</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ignoremos los motivos por los que <code>2147483648 == -2147483648</code>. El punto es que <code>gdb</code> también entiende la aritmética, que puede ser bastante complicada en C.</p>
+
+<p>Pongamos un breakpoint en la función <code>main</code> y arranquemos el programa:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gbd</span><span class="p">)</span> <span class="k">break</span> <span class="n">main</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">run</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>El programa ahora está pausado en la línea 3, justo antes de inicializar <code>i</code>. Resulta interesante que, por más que <code>i</code> no haya sido inicializada aún, podamos ver su valor con el comando <code>print</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gbd</span><span class="p">)</span> <span class="n">print</span> <span class="n">i</span>
+</span><span class='line'><span class="err">$</span><span class="mi">3</span> <span class="o">=</span> <span class="mi">32767</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>En C, el valor de una variable local no inicializada es indefinido, por lo que podrías ver distintos valores cuando lo pruebes vos.</p>
+
+<p>Podemos ejecutar la línea actual usando el comando <code>next</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">next</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="n">i</span>
+</span><span class='line'><span class="err">$</span><span class="mi">4</span> <span class="o">=</span> <span class="mi">1337</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Examinando la memoria con <code>x</code></h2>
+
+<p>Las variables en C son simplemente nombres que se le pone a bloques de memoria. El bloque de memoria de una variable está caracterizada por dos números:</p>
+
+<ol>
+<li>La dirección numérica del primer byte del bloque</li>
+<li>El tamaño del bloque, medido en bytes. El tamaño del bloque de una variable está determinado por el tipo de la variable</li>
+</ol>
+
+
+<p>Una de las características distintivas de C es que tenés acceso directo al bloque de memoria de las variables. El operador <code>&amp;</code> computa la dirección de una variable, y el operador <code>sizeof</code> computa el tamaño de esa variable en memoria.</p>
+
+<p>Podemos jugar con estos conceptos en <code>gdb</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="o">&amp;</span><span class="n">i</span>
+</span><span class='line'><span class="err">$</span><span class="mi">5</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span> <span class="mh">0x7fff5fbff584</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</span><span class='line'><span class="err">$</span><span class="mi">6</span> <span class="o">=</span> <span class="mi">4</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>En palabras, eso dice que el bloque de memoria de <code>i</code> empieza en la dirección <code>0x7fff5fbff584</code>, y que ocupa 4 bytes de memoria.</p>
+
+<p>Antes mencioné que el tamaño de una variable en memoria es determinado por su tipo, y, de hecho, el operador <code>sizeof</code> puede operar directamente sobre tipos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span>
+</span><span class='line'><span class="err">$</span><span class="mi">7</span> <span class="o">=</span> <span class="mi">4</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span>
+</span><span class='line'><span class="err">$</span><span class="mi">8</span> <span class="o">=</span> <span class="mi">8</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Esto significa que, al menos en mi máquina, las variables de tipo <code>int</code> ocupan 4 bytes de memoria, y las <code>double</code> ocupan 8.</p>
+
+<p><code>gdb</code> incluye una herramienta muy poderosa para examinar la memoria: el comando <code>x</code>. <code>x</code> examina la memoria, comezando en una dirección en particular. Incluye distintos comandos de formato para tener un control preciso de cuántos bytes querés examinar y cómo querés que se muestren. En caso de dudas, <code>help x</code> en el prompt de <code>gdb</code>.</p>
+
+<p>El operador <code>&amp;</code> computa la dirección de una variable, por lo que podemos pasarle <code>&amp;i</code> a <code>x</code> y ver qué hay en los bytes que conforman el valor de <code>i</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">4</span><span class="n">xb</span> <span class="o">&amp;</span><span class="n">i</span>
+</span><span class='line'><span class="mh">0x7fff5fbff584</span><span class="o">:</span> <span class="mh">0x39</span>    <span class="mh">0x05</span>    <span class="mh">0x00</span>    <span class="mh">0x00</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Los flags indican que queremos examinar <code>4</code> valores, formateados como números he<code>x</code>adecimales, de a un <code>b</code>yte a la vez. Elegí examinar 4 bytes porque ese es el tamaño de <code>i</code> en memoria &ndash; la salida muestra la representación byte a byte de <code>i</code> en memoria.</p>
+
+<p>Un detalle a tener en cuenta con las representaciones byte a byte en las máquinas de la familia x86 es que los bytes se almacenan en <em>little-endian</em>: contrario a la notación humana, los bytes menos significativos de un número se almacenan primero en memoria.</p>
+
+<p>Una forma de clarificar el tema es darle a <code>i</code> un valor más significativo y volver a examinar su bloque de memoria:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">set</span> <span class="n">var</span> <span class="n">i</span> <span class="o">=</span> <span class="mh">0x12345678</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">4</span><span class="n">xb</span> <span class="o">&amp;</span><span class="n">i</span>
+</span><span class='line'><span class="mh">0x7fff5fbff584</span><span class="o">:</span> <span class="mh">0x78</span> <span class="mh">0x56</span> <span class="mh">0x34</span> <span class="mh">0x12</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Examinando tipos con <code>ptype</code></h2>
+
+<p>El comando <code>ptype</code> puede que sea mi comando favorito. Te dice el tipo de una expresión C:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">ptype</span> <span class="n">i</span>
+</span><span class='line'><span class="n">type</span> <span class="o">=</span> <span class="kt">int</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">ptype</span> <span class="o">&amp;</span><span class="n">i</span>
+</span><span class='line'><span class="n">type</span> <span class="o">=</span> <span class="kt">int</span> <span class="o">*</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">ptype</span> <span class="n">main</span>
+</span><span class='line'><span class="n">type</span> <span class="o">=</span> <span class="kt">int</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Los tipos en C pueden volverse <a href="http://c-faq.com/decl/spiral.anderson.html">complejos</a>, pero <code>ptype</code> te permite explorarlos interactivamente.</p>
+
+<h2>Punteros y arrays</h2>
+
+<p>Los arrays en C son un concepto sumamente delicado. La idea de esta sección es que escribamos un programa simple y nos pongamos a jugar con <code>gdb</code> hasta que los arrays empiecen a tener sentido.</p>
+
+<p>Escribí este programa <code>arrays.c</code>:</p>
+
+<figure class='code'><figcaption><span>arrays.c </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
+</span><span class='line'><span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">a</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">};</span>
+</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Compilalo con la opción <code>-g</code>, correlo con <code>gdb</code>, y dale <code>next</code> para saltar la línea de inicialización:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="err">$</span> <span class="n">gcc</span> <span class="o">-</span><span class="n">g</span> <span class="n">arrays</span><span class="p">.</span><span class="n">c</span> <span class="o">-</span><span class="n">o</span> <span class="n">arrays</span>
+</span><span class='line'><span class="err">$</span> <span class="n">gdb</span> <span class="n">arrays</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="k">break</span> <span class="n">main</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">run</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">next</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>En este punto ya deberías poder hacer <code>print</code> del contenido de <code>a</code> y examinar su tipo:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="n">a</span>
+</span><span class='line'><span class="err">$</span><span class="mi">1</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">}</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">ptype</span> <span class="n">a</span>
+</span><span class='line'><span class="n">type</span> <span class="o">=</span> <span class="kt">int</span> <span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Ahora que nuestro programa ya inició en <code>gdb</code>, lo primero que deberíamos hacer es usar <code>x</code> para ver cómo se ve <code>a</code> internamente:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">12</span><span class="n">xb</span> <span class="o">&amp;</span><span class="n">a</span>
+</span><span class='line'><span class="mh">0x7fff5fbff56c</span><span class="o">:</span> <span class="mh">0x01</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>  <span class="mh">0x02</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>
+</span><span class='line'><span class="mh">0x7fff5fbff574</span><span class="o">:</span> <span class="mh">0x03</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Esto significa que el bloque de memoria de <code>a</code> comienza en la dirección <code>0x7fff5fbff56c</code>. Los primeros 4 bytes almacenan <code>a[0]</code>, los 4 siguientes almacenan <code>a[1]</code>, y los últimos 4 almacenan <code>a[2]</code>. De hecho, podés ver que <code>sizeof</code> sabe que el tamaño de <code>a</code> en memoria son 12 bytes:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</span><span class='line'><span class="err">$</span><span class="mi">2</span> <span class="o">=</span> <span class="mi">12</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Hasta acá, los arrays parecen comportarse bastante como arrays. Tienen su propio tipo como arrays, y almacenan sus componentes en bloques de memoria contiguos. De todos modos, en algunas situaciones los arrays se comportan <em>bastante</em> como punteros. Por ejemplo, podemos hacer aritmética de punteros con <code>a</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class='line'><span class="err">$</span><span class="mi">3</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span> <span class="mh">0x7fff5fbff570</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>En palabras, esto dice que <code>a + 1</code> es un puntero a un <code>int</code>, y ubicado en la dirección <code>0x7fff5fbff570</code>. A esta altura, pasarle los punteros que veas a <code>x</code> debería serte un acto reflejo, así que probemos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">4</span><span class="n">xb</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class='line'><span class="mh">0x7fff5fbff570</span><span class="o">:</span> <span class="mh">0x02</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Notá que <code>0x7fff5fbff570</code> es 4 más que <code>0x7fff5fbff56c</code>, la dirección del primer byte de memoria de <code>a</code>. Dado que los valores <code>int</code> ocupan 4 bytes, esto significa que <code>a + 1</code> apunta a <code>a[1]</code>.</p>
+
+<p>De hecho, los subíndices de los arrays de C son <em>syntactic sugar</em> (agregados sintátcitos) para hacer aritmética de punteros: <code>a[i]</code> es equivalente a <code>*(a + i)</code>. Podés probarlo en <code>gdb</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span class='line'><span class="err">$</span><span class="mi">4</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="o">*</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'><span class="err">$</span><span class="mi">5</span> <span class="o">=</span> <span class="mi">1</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</span><span class='line'><span class="err">$</span><span class="mi">6</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="o">*</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</span><span class='line'><span class="err">$</span><span class="mi">7</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+</span><span class='line'><span class="err">$</span><span class="mi">8</span> <span class="o">=</span> <span class="mi">3</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="o">*</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+</span><span class='line'><span class="err">$</span><span class="mi">9</span> <span class="o">=</span> <span class="mi">3</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Vimos que, en algunas situaciones, <code>a</code> se comporta como un array, meintras que en otras actúa como un puntero a su primer elemento. ¿Qué está pasando?</p>
+
+<p>La respuesta es que cuando se usa el nombre de un array en una expresión C, <em>degenera</em><sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup> en un puntero al primer elemento del array. Existen sólo dos excepciones a esta regla: cuando el nombre del array se le pasa a <code>sizeof</code>, y cuando se le pasa al operador <code>&amp;</code><sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>.</p>
+
+<p>El hecho de que <code>a</code> no degenere en un puntero cuando se lo pasamos al operador <code>&amp;</code> dispara una pregunta interesante: ¿hay alguna diferencia entre el puntero al que <code>a</code> degenera y <code>&amp;a</code>?</p>
+
+<p>Numéricamente hablando, representan la misma dirección:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">4</span><span class="n">xb</span> <span class="n">a</span>
+</span><span class='line'><span class="mh">0x7fff5fbff56c</span><span class="o">:</span> <span class="mh">0x01</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">x</span><span class="o">/</span><span class="mi">4</span><span class="n">xb</span> <span class="o">&amp;</span><span class="n">a</span>
+</span><span class='line'><span class="mh">0x7fff5fbff56c</span><span class="o">:</span> <span class="mh">0x01</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>  <span class="mh">0x00</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Así y todo, sus tipos son diferentes. Ya vimos que el valor al que <code>a</code> degenera es un puntero al primer elemento de <code>a</code>, por lo que su tipo debe ser <code>int *</code>. En cuanto al tipo de <code>&amp;a</code>, preguntémosle a <code>gdb</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">ptype</span> <span class="o">&amp;</span><span class="n">a</span>
+</span><span class='line'><span class="n">type</span> <span class="o">=</span> <span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="p">)[</span><span class="mi">3</span><span class="p">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>En palabras, <code>&amp;a</code> es un puntero a un array de tres <code>int</code>s. Tiene sentido: <code>a</code> no degenera al ser pasado a <code>&amp;</code>, y el tipo de <code>a</code> es <code>int[3]</code>.</p>
+
+<p>Podés observar la diferencia entre el valor al que degenera <code>a</code> y <code>&amp;a</code> probando cómo se comportan con la aritmética de punteros:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="n">a</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class='line'><span class="err">$</span><span class="mi">10</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span> <span class="mh">0x7fff5fbff570</span>
+</span><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="o">&amp;</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span>
+</span><span class='line'><span class="err">$</span><span class="mi">11</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="p">(</span><span class="o">*</span><span class="p">)[</span><span class="mi">3</span><span class="p">])</span> <span class="mh">0x7fff5fbff578</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Notá que sumarle 1 a <code>a</code> le suma 4 a su dirección, mientras que sumarle 1 a <code>&amp;a</code> le agrega ¡12!</p>
+
+<p>El puntero al que <code>a</code> realmente degenera es <code>&amp;a[0]</code>:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='c-objdump'><span class='line'><span class="p">(</span><span class="n">gdb</span><span class="p">)</span> <span class="n">print</span> <span class="o">&amp;</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span class='line'><span class="err">$</span><span class="mi">11</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span> <span class="o">*</span><span class="p">)</span> <span class="mh">0x7fff5fbff56c</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Conclusión</h2>
+
+<p>Con un poquito de suerte, ya te convencí de que <code>gdb</code> es un lindo ambiente de exploración para aprender C. Podés imprimir el resultado de evaluar expresiones con <code>print</code>, e<code>x</code>aminar los bytes de memoria en crudo, y jugar con el sistema de tipos usando <code>ptype</code>.</p>
+
+<p>Si querés experimentar un poco más con <code>gdb</code> para aprender C, estas son algunas sugerencias:</p>
+
+<ul>
+<li>Usá <code>gdb</code> para resolver el <a href="https://blogs.oracle.com/ksplice/entry/the_ksplice_pointer_challenge">desafío Ksplice de punteros</a></li>
+<li>Investigá cómo se almacenan los <code>struct</code>s en memoria. ¿Cómo se comparan con los arrays?</li>
+<li>¡Usá el comando <code>dissasemble</code> de <code>gdb</code> para aprender assembler! Un ejercicio particularmente entretenido es investigar cómo funciona el stack de llamadas.<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup></li>
+<li>Probá el modo <code>tui</code> de <code>gdb</code>, que ofrece una interfaz a <code>gdb</code> hecha en ncurses<sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup>.</li>
+</ul>
+
+
+<p><em>Alan es facilitador en Hacker School. Agradece a <a href="http://dave.is/">David Albert</a>, <a href="https://github.com/thomasballinger">Tom Ballinger</a>, <a href="http://nick.is/">Nicholas Bergson-Shilcock</a> y <a href="https://github.com/oxling">Amy Dyer</a> por sus muy útiles comentarios.</em></p>
+
+<p><em>¿Te intriga Hacker School? Leé <a href="https://hackerschool.com/about">sobre ello</a>, mirá <a href="https://hackerschool.com/testimonials">lo que dicen sus alumnos</a>, y <a href="https://hackerschool.com/apply">aplicá</a> para la próxima camada.</em></p>
+<div class="footnotes">
+<hr/>
+<ol>
+<li id="fn:1">
+<p>Dependiendo de cuán agresivo sea tu compilador a la hora de optimizar código inútil, podrías tener que hacer que efectivamente haga algo :) Yo probé estos ejemplos en mi Raspberry Pi y funcionó bien.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<li id="fn:2">
+<p><strong>NdT</strong>: el artículo original dice que <em>it “decays” to a pointer to the array’s first element</em>. No conocía esa expresión, y no encuentro a mano algún material que diga <em>decay</em> y del que conozca su traducción, para ver cuál es el término usado en español (si es que hubiera uno consensuado). Elegí <em>degenera</em> porque se usa en algunas temáticas relacionadas, y porque me pareció que expresa un poco la intención original. Si así no lo hiciese, que <code>$DEITY</code> y la patria me lo demanden, o que alguien me deje un comentario con el término apropiado. Y así fue como, hace mil años, algún español nos pegó el karma de &ldquo;instancia&rdquo; en lugar de &ldquo;individuo, especimen&rdquo;. Soy un criminal, ¡oh yeah!<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p>Formalmente hablando, el nombre de un array es un &ldquo;non-modifiable lvalue&rdquo; (<em>valor izquierdo no modificable</em>). Cuando es usado en una expresión que requiere un rvalue (<em>valor derecho</em>), el nombre del array degenera en un puntero a su primer elemento. En cuanto a las excepciones, el operador <code>&amp;</code> requiere un lvalue, y <code>sizeof</code> simplemente es raro.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<li id="fn:4">
+<p><strong>NdT</strong>: Podés leer este post relacionado: <a href="http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/19/aprendiendo-assembler-para-entender-c/">Aprendiendo Assembler Para Entender C</a><a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
+<li id="fn:5">
+<p><strong>NdT</strong>: podés leerte la <a href="http://beej.us/guide/bggdb/">Guía rápida de Beej para GDB</a>, que es corta, bastante buena, y usa todo el tiempo el modo <code>tui</code>.<a href="#fnref:5" rev="footnote">&#8617;</a></p></li>
+</ol>
+</div>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Aprendiendo Assembler para entender C]]></title>

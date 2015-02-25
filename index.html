@@ -9,7 +9,7 @@
   <meta name="author" content="mgarciaisaia">
 
   
-  <meta name="description" content="Este post es mi traducción del post Understanding C by learning assembly de David Albert, del blog de Hacker School. La traducción fue hecha con el &hellip;">
+  <meta name="description" content="Este post es mi traducción del post Learning C with GDB de Alan O&#8217;Donnell, del blog de Hacker School. La traducción fue hecha con el permiso de &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -89,6 +89,54 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/tutorial-c/blog/2015/02/24/aprendiendo-c-con-gdb/">Aprendiendo C Con GDB</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-02-24T22:07:00-03:00" pubdate data-updated="true">Feb 24<span>th</span>, 2015</time>
+        
+         | <a href="/tutorial-c/blog/2015/02/24/aprendiendo-c-con-gdb/#disqus_thread">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>Este post es mi traducción del post <a href="https://www.hackerschool.com/blog/5-learning-c-with-gdb">Learning C with GDB</a> de <a href="https://github.com/happy4crazy">Alan O&#8217;Donnell</a>, del blog de <a href="https://www.hackerschool.com/">Hacker School</a>. La traducción fue hecha con el permiso de Hacker School, y obviamente todos los derechos sobre el post original les pertenecen a ellos.
+Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></p>
+
+<p>Viniendo del mundo de lenguajes de más alto nivel como Ruby, Scheme o Haskell, aprender C puede ser complicado. Además de tener que pelear con las características de bajo nivel de C como el manejo manual de memoria y los punteros, tenés que arreglártelas sin un REPL. Una vez que te acostumbrás a programar explorando en un REPL, tener que lidiar con el ciclo escribir-compilar-correr es bastante un desalentador.</p>
+
+<p>Hace poco se me ocurrió que podría usar <code>gdb</code> como un pseudo-REPL para C. Estuve experimentando el uso de <code>gdb</code> como una herramienta para aprender C, en lugar de simplemente para debuggear C, y está bastante bueno.</p>
+
+<p>Mi objetivo en este post es mostrarte que <code>gdb</code> es una gran herramienta para aprender C. Te voy a mostrar algunos de mis comandos de <code>gdb</code> favoritos, y después te voy a mostrar cómo podés usar <code>gdb</code> para entender una parte bastante complicada de C: la diferencia entre los arrays y los punteros.</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/tutorial-c/blog/2015/02/24/aprendiendo-c-con-gdb/">Seguir leyendo&#8230;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -667,6 +715,10 @@ Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/tutorial-c/blog/2015/02/24/aprendiendo-c-con-gdb/">Aprendiendo C Con GDB</a>
+      </li>
     
       <li class="post">
         <a href="/tutorial-c/blog/2015/02/19/aprendiendo-assembler-para-entender-c/">Aprendiendo Assembler Para Entender C</a>
