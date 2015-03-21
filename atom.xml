@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2015-03-20T02:05:36-03:00</updated>
+  <updated>2015-03-21T17:11:40-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -18,7 +18,9 @@
     <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/27/dream-of-serialization/"/>
     <updated>2015-02-27T00:30:00-03:00</updated>
     <id>http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/27/dream-of-serialization</id>
-    <content type="html"><![CDATA[<p>Las variables de C son nombres que refieren a una posición de memoria de la computadora. El compilador traduce cada nombre a una dirección de memoria, y el tamaño de la variable está determinado por su tipo.</p>
+    <content type="html"><![CDATA[<p><em>Disclaimer: escribí este post hace unos días, a mano, y, ahora que lo estoy releyendo para tipearlo en la compu, no me parece tan genial como cuando lo escribí la primera vez. Recomiendo tomarlo bastante más con pinzas que de costumbre, y donde encuentren algo que les haga ruido &ndash; o directamente sientan que lo que digo es incorrecto, o que el enfoque no es bueno &ndash; avisen, así lo rewordeo. Por favor, perdón y gracias.</em></p>
+
+<p>Las variables de C son nombres que refieren a una posición de memoria de la computadora. El compilador traduce cada nombre a una dirección de memoria, y el tamaño de la variable está determinado por su tipo.</p>
 
 <p>Pero si bien el estándar de C pone algunas restricciones a los tamaños de los tipos de datos básicos, no todos tienen igual tamaño en las distintas plataformas, o incluso entre distintos compiladores de C para la misma plataforma.<!-- more --></p>
 
@@ -66,14 +68,74 @@
 
 <p>Es importante notar que tomamos decisiones re grosas: en nuestro protocolo, los caracteres son de 1 byte, y los enteros de 4, al menos para este mensaje. Si queremos hacer un cliente para plataformas cuyos <code>int</code> son de 2 bytes, vamos a tener que decidir cómo manejar los overflows (por ejemplo, usar variables de algún tipo más grande en nuestro <code>struct</code>, o truncar el valor recibido, o lo que sea), y mismo si estamos en 64 bits: nuestro <code>int</code> de 64 bits podría no ser representable en 4 bytes. No hay una receta universal para esto: son decisiones de diseño intrínsecas a nuestro problema.</p>
 
-<p><em>(Continuará&hellip;)</em></p>
+<h2>Manejando distintos mensajes</h2>
+
+<p>Pero probablemente nuestro programa pueda/tenga que mandar y recibir distintos tipos de mensajes. Para saber de qué tipo de mensaje se trata, nuestro protocolo podría especificar que antes de enviar cada mensaje se envíe una cantidad fija de bytes que identifique qué tipo de mensaje estamos enviando, de modo que el receptor sepa cómo decodificarlo.</p>
+
+<p>Otro problema frecuente es el de los mensajes de longitud variable: los <code>int</code>s pesan siempre lo mismo en una arquitectura determinada, pero el string <code>"hola"</code> no pesa lo mismo que <code>"Hola, che, ¿cómo te va?"</code>. ¿Cómo serializamos eso? ¿Cómo sabe el proceso remoto cuántos bytes tendría que <code>recv</code>ir para leer el mensaje completo?</p>
+
+<p>Lo mejor es tratar de trabajar siempre con tamaños fijos, cosa de que de ambos extremos de la comunicación sepan cuántos bytes enviar y cuántos esperar recibir. Pero <em>tamaño fijo</em> podría interpretarse como <em>todos los strings que mando van a ser de 80 bytes</em> y, si bien en algunos casos (en los que la comunicación está bastante acotada y predefinida) eso puede ser suficiente, en muchos otros casos puede ser un problema: un tamaño fijo muy grande desperdicia muchos bytes para mensajes chicos (imaginen mandar 1MB por internet sólo para decir &ldquo;Hola&rdquo;), y tamaños muy chicos podrían obligarnos a truncar los mensajes o tener que pensar algún mecanismo para mandar el mensaje en varias partes<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>.</p>
+
+<p>Entonces, hagamos algo mejor: elijamos una cantidad fija de bytes en la que especificar <em>cuánto mide nuestro string</em>, y enviemos ese número primero, y luego todos los bytes que conforman el mensaje. De este modo, el cliente siempre recibe una cantidad fija de bytes (por ejemplo, 4), interpreta esos bytes como un número, y luego recibe esa cantidad de bytes como mensaje:</p>
+
+<figure class='code'><figcaption><span>Enviando mensajes de longitud variable </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">size_t</span> <span class="n">messageLength</span> <span class="o">=</span> <span class="n">strlen</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+</span><span class='line'><span class="kt">void</span> <span class="o">*</span><span class="n">buffer</span> <span class="o">=</span> <span class="n">malloc</span> <span class="p">(</span><span class="mi">4</span> <span class="o">+</span> <span class="n">messageLength</span><span class="p">);</span>
+</span><span class='line'><span class="n">memcpy</span><span class="p">(</span><span class="n">buffer</span><span class="p">,</span> <span class="n">messageLength</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+</span><span class='line'><span class="n">memcpy</span><span class="p">(</span><span class="n">buffer</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">messageLength</span><span class="p">);</span>
+</span><span class='line'><span class="n">send</span><span class="p">(</span><span class="n">mySocket</span><span class="p">,</span> <span class="n">buffer</span><span class="p">,</span> <span class="mi">4</span> <span class="o">+</span> <span class="n">messageLength</span><span class="p">,</span> <span class="p">...);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Y el cliente:</p>
+
+<figure class='code'><figcaption><span>Recibiendo mensajes de longitud variable </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">size_t</span> <span class="n">messageLength</span><span class="p">;</span>
+</span><span class='line'><span class="n">recv</span><span class="p">(</span><span class="n">mySocket</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">messageLength</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="p">...);</span>
+</span><span class='line'><span class="kt">void</span> <span class="o">*</span><span class="n">message</span> <span class="o">=</span> <span class="n">malloc</span><span class="p">(</span><span class="n">messageLength</span><span class="p">);</span>
+</span><span class='line'><span class="n">recv</span><span class="p">(</span><span class="n">mySocket</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">messageLength</span><span class="p">,</span> <span class="p">...);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>De este modo, el cliente no se bloquea, porque siempre sabe cuánto debe recibir.</p>
+
+<p>Ojo que nosotros enviamos <code>strlen(message)</code> bytes, por lo que el <code>\0</code> que termina los strings en C no viajó: si queremos que lo que recibimos sea un string, tenemos que agregarlo a mano al final del mensaje (y reservar un byte más en el <code>malloc</code> del receptor)<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>.</p>
+
+<p>También es importante notar que lo que enviamos es el contenido del string, y no el puntero. Para mandar un <code>int</code>, a send le pasamos <code>&amp;myInt</code>, porque lo que necesita es un puntero a los bytes a enviar. Pero para mandar un string, en los ejemplos que vimos acá le pasamos directamente <code>myString</code>, porque ese es el puntero: si pasáramos <code>&amp;myString</code> a <code>send</code>, le estaríamos pidiendo que mande <em>la dirección del string en nuestro proceso</em>, dato que al proceso remoto <strong>no le sirve</strong> para leer el contenido del mensaje.</p>
+
+<p>Por último, y para hacer un único <code>recv</code> bloqueante en lugar de hacer varios <code>recv</code> que bloqueen por pocos datos, podría ser útil mandar siempre como primer dato del mensaje el tamaño total del mismo, obviamente eligiendo una cantidad fija de bytes en la que representar este dato. De este modo, el receptor siempre lee esa cantidad fija de bytes, luego hace un único <code>recv</code> del mensaje completo, y una vez que lo tiene, lo procesa por completo.</p>
+
+<h2>Serialización vs sockets</h2>
+
+<p><em>Che, y&hellip; Para serializar, ¿necesito saber sockets?</em></p>
+
+<p>Bueno, no<sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup>. La serialización es una herramienta que permite representar en un modo &ldquo;primitivo&rdquo;, simple de almacenar y/o transmitir, alguna estructura más o menos compleja de un sistema.</p>
+
+<p>En el TP es muy común serializar estructuras para enviarlas a otro proceso mediante sockets, pero también podríamos serializar el estado del proceso (o una parte del mismo) si necesitáramos <em>guardar</em> el estado de una tarea para resumirla más adelante. Por ejemplo, cuando usamos VirtualBox, al cerrar la VM con la opción &ldquo;Save the machine state&rdquo;, VirtualBox serializa la memoria y todo el estado de la VM actual y lo persiste en un[os] archivo<a href="" title="Lo mismo ocurre cuando cerramos un ambiente de Smalltalk guardando los cambios">s</a>.</p>
+
+<p>Estos ejemplos claramente son independientes de los sockets (una vez serializado <em>el dato</em>, podemos simplemente hacer un <code>fwrite</code> a un archivo en disco), y aún así son perfectos casos de serialización.</p>
 <div class="footnotes">
 <hr/>
 <ol>
 <li id="fn:1">
 <p>No olvidar, tampoco, little-endian vs big-endian, etc.<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
 <li id="fn:2">
-<p>El código que se muestra en el post tiene como prioridad ilustrar las ideas relacionadas con serialización con la menor cantidad de código extra posible. <strong>No sigue</strong> muchísimas buenas prácticas de programación, ni es digno de ser usado en código productivo, ni código de Trabajo Práctico. En particular, además de modularizar, elegir buenos nombres, etc, cualquiera que pretenda usar esto debería agregar chequeo de errores, reintentos, validaciones, etc&hellip; Y completar los parámetros faltantes de los <code>send</code> y <code>recv</code> :)<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<p>El código que se muestra en el post tiene como prioridad ilustrar las ideas relacionadas con serialización con la menor cantidad de código extra posible. <strong>No sigue</strong> muchísimas de las buenas prácticas de programación, ni es digno de ser usado en código productivo, ni código de Trabajo Práctico. En particular, además de modularizar, elegir buenos nombres, etc, cualquiera que pretenda usar esto debería agregar chequeo de errores, reintentos, validaciones, etc&hellip; Y completar los parámetros faltantes de los <code>send</code> y <code>recv</code> :)<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<li id="fn:3">
+<p>Si sienten un olorcito a <em>fragmentación</em>, vienen bien<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<li id="fn:4">
+<p>Esto colabora un poco con el encapsulamiento: en otro lenguaje, los strings podrían no necesitar el <code>\0</code> al final &ndash; es una cuestión de implementación que ese <code>\0</code> exista.<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
+<li id="fn:5">
+<p>Lo que no significa que no debas saber sockets para aprobar la materia :)<a href="#fnref:5" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
