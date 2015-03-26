@@ -120,11 +120,11 @@
 <div class="entry-content"><p><em>Este post es mi traducción del post <a href="https://www.hackerschool.com/blog/7-understanding-c-by-learning-assembly">Understanding C by learning assembly</a> de <a href="https://github.com/davidbalbert">David Albert</a>, del blog de <a href="https://www.hackerschool.com/">Hacker School</a>. La traducción fue hecha con el permiso de Hacker School, y obviamente todos los derechos sobre el post original les pertenecen a ellos.
 Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></p>
 
-<p>La última vez, <a href="https://github.com/happy4crazy">Alan</a> mostró cómo usar <a href="https://www.hackerschool.com/blog/5-learning-c-with-gdb">GDB como una herramienta para aprender C</a>. Hoy quiero ir un paso más allá y usar GDB para ayudarnos a entender assembler, también.</p>
+<p>La última vez, <a href="https://github.com/happy4crazy">Alan</a> mostró cómo usar <a href="/tutorial-c/blog/2015/02/24/aprendiendo-c-con-gdb/">GDB como una herramienta para aprender C</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>. Hoy quiero ir un paso más allá y usar GDB para ayudarnos a entender assembler, también.</p>
 
 <p>Las capas de abstracción son grandes herramientas para construir cosas, pero a veces pueden interponerse en el aprendizaje. Mi objetivo en este post es convencerte de que para aprender C rigurosamente, también necesitamos entender el código assembler que nuestro compilador de C genera. Voy a hacer esto mostrándote cómo desensamblar y leer un programa simple con GDB, y después vamos a usar GDB y nuestro conocimiento de assembler para entender cómo funcionan las variables locales estáticas en C.<!--more--></p>
 
-<p><em>Nota: todo el código en este post fue compilado en una CPU x86_64 corriendo Mac OS X 10.8.1, usando Clang 4.0 con las optimizaciones deshabilitadas (<code>-O0</code>)<sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</em></p>
+<p><em>Nota: todo el código en este post fue compilado en una CPU x86_64 corriendo Mac OS X 10.8.1, usando Clang 4.0 con las optimizaciones deshabilitadas (<code>-O0</code>)<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>.</em></p>
 
 <h2>Aprendiendo assembler con GDB</h2>
 
@@ -146,7 +146,7 @@ Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Ahora compilalo con los símbolos de depuración y sin optimizaciones, y corré GDB<sup id="fnref:2"><a href="#fn:2" rel="footnote">2</a></sup>:</p>
+<p>Ahora compilalo con los símbolos de depuración y sin optimizaciones, y corré GDB<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>:</p>
 
 <figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -199,11 +199,11 @@ Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>El comando <code>disassemble</code> defaultea a mostrar las instrucciones en la sintaxis de AT&amp;T, que es la misma sintaxis usada por el assembler de GNU<sup id="fnref:3"><a href="#fn:3" rel="footnote">3</a></sup>. Las instrucciones en la sintaxis AT&amp;T son del formato <code>mnemónico origen, destino</code>. El mnemónico es el nombre <em>humanamente legible</em><sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup> de la instrucción. <code>origen</code> y <code>destino</code> son operandos, que pueden ser valores inmediatos, registros, direcciones de memoria o etiquetas. Los valores inmediatos son constantes, y están prefijados por un <code>$</code>. Por ejemplo, <code>$0x5</code> representa al número 5 en hexadecimal. Los nombres de registros están prefijados por un <code>%</code>.</p>
+<p>El comando <code>disassemble</code> defaultea a mostrar las instrucciones en la sintaxis de AT&amp;T, que es la misma sintaxis usada por el assembler de GNU<sup id="fnref:4"><a href="#fn:4" rel="footnote">4</a></sup>. Las instrucciones en la sintaxis AT&amp;T son del formato <code>mnemónico origen, destino</code>. El mnemónico es el nombre <em>humanamente legible</em><sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup> de la instrucción. <code>origen</code> y <code>destino</code> son operandos, que pueden ser valores inmediatos, registros, direcciones de memoria o etiquetas. Los valores inmediatos son constantes, y están prefijados por un <code>$</code>. Por ejemplo, <code>$0x5</code> representa al número 5 en hexadecimal. Los nombres de registros están prefijados por un <code>%</code>.</p>
 
 <h3>Registros</h3>
 
-<p>Vale la pena dedicarle un ratito a entender los registros. Los registros son porciones de almacenamiento de datos que se encuentran directamente en el CPU. Salvo algunas excepciones, el tamaño, o <em>ancho</em>, de los registros de una CPU definen su arquitectura. Entonces, si tenés una CPU de 64 bits, tus registros van a medir 64 bits. Lo mismo ocurre con las CPUs de 32 bits (registros de 32 bits), 16 bits, y así<sup id="fnref:5"><a href="#fn:5" rel="footnote">5</a></sup>. Los registros son de muy rápido acceso, y en general son los operandos de las operaciones aritméticas y lógicas.</p>
+<p>Vale la pena dedicarle un ratito a entender los registros. Los registros son porciones de almacenamiento de datos que se encuentran directamente en el CPU. Salvo algunas excepciones, el tamaño, o <em>ancho</em>, de los registros de una CPU definen su arquitectura. Entonces, si tenés una CPU de 64 bits, tus registros van a medir 64 bits. Lo mismo ocurre con las CPUs de 32 bits (registros de 32 bits), 16 bits, y así<sup id="fnref:6"><a href="#fn:6" rel="footnote">6</a></sup>. Los registros son de muy rápido acceso, y en general son los operandos de las operaciones aritméticas y lógicas.</p>
 
 <p>La familia x86 tiene registros de propósito general y de propósito específico. Los de propósito general pueden usarse para cualquier operación, y su valor no tiene un significado especial para la CPU. En cambio, la CPU depende de ciertos registros de propósito específico para su propia operación, y los valores que en ellos se almacenan tienen un significado especial según el registro de que se trate. En nuestro ejemplo anterior, <code>%eax</code> y <code>%ecx</code> son registros de propósito general, mientras que <code>%rbp</code> y <code>%rsp</code> son de propósito específico. <code>%rbp</code> es el <em>base pointer</em> (puntero base), que apunta a la base del marco actual dentro del stack (<em>current stack frame</em>), y <code>%rsp</code> es el <em>stack pointer</em> (puntero al stack), que apunta al tope del stack frame actual. <code>%rbp</code> siempre tiene un valor mayor a <code>%rsp</code> porque el stack comienza en una dirección de memoria alta y crece hacia abajo. Si no te es muy familiar el concepto de stack de llamadas, podés encontrar <a href="http://en.wikipedia.org/wiki/Call_stack">una buena introducción en Wikipedia</a> (y <a href="http://es.wikipedia.org/wiki/Pila_de_llamadas">acá en español</a>).</p>
 
@@ -493,7 +493,7 @@ Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Entonces, no es sólo que <code>b</code> está en una dirección de memoria baja, fuera del stack, si no que además se la inicializa a -1 antes de que se llame a <code>natural_generator</code>. De hecho, incluso si desensamblaras el programa completo, no encontrarías ningún código que setteara <code>b</code> a -1. Esto ocurre porque el valor de <code>b</code> se hardcodea en otra sección del ejecutable <code>sample</code>, y el loader del sistema operativo lo carga en memoria junto con todo el código de máquina cuando se lanza el proceso<sup id="fnref:6"><a href="#fn:6" rel="footnote">6</a></sup>.</p>
+<p>Entonces, no es sólo que <code>b</code> está en una dirección de memoria baja, fuera del stack, si no que además se la inicializa a -1 antes de que se llame a <code>natural_generator</code>. De hecho, incluso si desensamblaras el programa completo, no encontrarías ningún código que setteara <code>b</code> a -1. Esto ocurre porque el valor de <code>b</code> se hardcodea en otra sección del ejecutable <code>sample</code>, y el loader del sistema operativo lo carga en memoria junto con todo el código de máquina cuando se lanza el proceso<sup id="fnref:7"><a href="#fn:7" rel="footnote">7</a></sup>.</p>
 
 <p>Después de todo esto, las cosas empiezan a tener más sentido. Tras almacenar <code>b</code> en <code>%eax</code>, pasamos a la próxima instrucción fuente, en la que incrementamos <code>b</code>. Esto se corresponde a las próximas dos instrucciones:</p>
 
@@ -582,17 +582,19 @@ Cualquier error o sugerencia sobre la traducción es más que bienvenida.</em></
 <hr/>
 <ol>
 <li id="fn:1">
-<p><strong>NdeT</strong>: Lo de que es en OS X no es porque me haga el careta usando Mac, si no porque el post original estaba así, y todavía no tengo la sopa/tiempo/ganas de hacer todo lo mismo pero en Linux con <code>gcc</code> :)<a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
+<p>El post original, en inglés, está <a href="https://www.hackerschool.com/blog/5-learning-c-with-gdb">en HackerSchool</a><a href="#fnref:1" rev="footnote">&#8617;</a></p></li>
 <li id="fn:2">
-<p>Tal vez notes que usamos Make para buildear <code>simple.c</code> sin un makefile. Podemos hacerlo porque Make tiene reglas implícitas para buildear ejecutables a partir de archivos C. Podés encontrar más información sobre esas reglas en el <a href="http://www.gnu.org/software/make/manual/make.html#Implicit-Rules">manual de Make</a><a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
+<p><strong>NdeT</strong>: Lo de que es en OS X no es porque me haga el careta usando Mac, si no porque el post original estaba así, y todavía no tengo la sopa/tiempo/ganas de hacer todo lo mismo pero en Linux con <code>gcc</code> :)<a href="#fnref:2" rev="footnote">&#8617;</a></p></li>
 <li id="fn:3">
-<p>También podés hacer que GDB muestre la sintaxis de Intel, usada por NASM, MASM y otros assemblers, pero eso se va del alcance del post.<a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
+<p>Tal vez notes que usamos Make para buildear <code>simple.c</code> sin un makefile. Podemos hacerlo porque Make tiene reglas implícitas para buildear ejecutables a partir de archivos C. Podés encontrar más información sobre esas reglas en el <a href="http://www.gnu.org/software/make/manual/make.html#Implicit-Rules">manual de Make</a><a href="#fnref:3" rev="footnote">&#8617;</a></p></li>
 <li id="fn:4">
-<p><strong>NdeT</strong>: Con <em>humanamente legible</em> quiere decir <em><strong>Joaco</strong>-humanamente legible</em>, pero bue&hellip;<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
+<p>También podés hacer que GDB muestre la sintaxis de Intel, usada por NASM, MASM y otros assemblers, pero eso se va del alcance del post.<a href="#fnref:4" rev="footnote">&#8617;</a></p></li>
 <li id="fn:5">
-<p>Los procesadores con sets de instrucciones SIMD (como MMX y SSE para x86, y AltiVec para PowerPC) suelen tener algunos registros que son más anchos que la arquitectura de la CPU.<a href="#fnref:5" rev="footnote">&#8617;</a></p></li>
+<p><strong>NdeT</strong>: Con <em>humanamente legible</em> quiere decir <em><strong>Joaco</strong>-humanamente legible</em>, pero bue&hellip;<a href="#fnref:5" rev="footnote">&#8617;</a></p></li>
 <li id="fn:6">
-<p>Reservamos para un post futuro la discusión sobre formatos de objeto, loaders y linkers.<a href="#fnref:6" rev="footnote">&#8617;</a></p></li>
+<p>Los procesadores con sets de instrucciones SIMD (como MMX y SSE para x86, y AltiVec para PowerPC) suelen tener algunos registros que son más anchos que la arquitectura de la CPU.<a href="#fnref:6" rev="footnote">&#8617;</a></p></li>
+<li id="fn:7">
+<p>Reservamos para un post futuro la discusión sobre formatos de objeto, loaders y linkers.<a href="#fnref:7" rev="footnote">&#8617;</a></p></li>
 </ol>
 </div>
 
