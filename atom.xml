@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2015-03-26T16:02:17-03:00</updated>
+  <updated>2015-04-23T02:58:50-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -12,6 +12,102 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Rutas Argentinas]]></title>
+    <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2015/04/23/rutas-argentinas/"/>
+    <updated>2015-04-23T01:40:00-03:00</updated>
+    <id>http://mgarciaisaia.github.io/tutorial-c/blog/2015/04/23/rutas-argentinas</id>
+    <content type="html"><![CDATA[<p>Más de una vez hemos puesto rutas absolutas en nuestro código, porque es común no entender cómo funcionan las rutas absolutas dentro de un programa.<!-- more --></p>
+
+<h2>Current working directory</h2>
+
+<p>Cuando ejecutamos un proceso, éste se ejecuta con un directorio de trabajo asociado (el <em>current working directory</em>, que le llaman). La idea es marcar un directorio como el &ldquo;actual&rdquo; en que se encuentra ese proceso. Desde el programa podemos acceder a ese valor usando la función <a href="http://linux.die.net/man/3/getcwd"><code>getcwd()</code></a>:</p>
+
+<figure class='code'><figcaption><span>cwd.c </span></figcaption>
+ <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;unistd.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;stdlib.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">char</span> <span class="o">*</span><span class="n">current_dir</span> <span class="o">=</span> <span class="n">getcwd</span><span class="p">(</span><span class="nb">NULL</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;El directorio actual es %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">current_dir</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">free</span><span class="p">(</span><span class="n">current_dir</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Compilemos y ejecutemos:</p>
+
+<figure class='code'> <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'>utnso@utnso40:~<span class="nv">$ </span><span class="nb">pwd</span>
+</span><span class='line'>/home/utnso
+</span><span class='line'>utnso@utnso40:~<span class="nv">$ </span>gcc -Wall cwd.c -o cwd
+</span><span class='line'>utnso@utnso40:~<span class="nv">$ </span>./cwd
+</span><span class='line'>El directorio actual es /home/utnso
+</span><span class='line'>utnso@utnso40:~<span class="nv">$ </span><span class="nb">cd</span> /etc/
+</span><span class='line'>utnso@utnso40:/etc<span class="nv">$ </span>~/cwd
+</span><span class='line'>El directorio actual es /etc
+</span><span class='line'>utnso@utnso40:/etc<span class="err">$</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Por defecto, al iniciar un proceso desde la consola, el directorio de trabajo actual es el directorio en que estábamos cuando ejecutamos el proceso. Existe, también, <a href="http://linux.die.net/man/2/chdir"><code>chdir</code></a>, para cambiar el directorio de trabajo actual, pero se va del scope de este post su uso.</p>
+
+<h2>Rutas relativas</h2>
+
+<p>Y si el CWD nos interesa, eso es porque los paths relativos se resuelven a partir del directorio actual del proceso. De <a href="http://linux.die.net/man/2/path_resolution"><code>man path_resolution</code></a>:</p>
+
+<blockquote><p>If the pathname does not start with the &lsquo;/&rsquo; character, the starting lookup directory of the resolution process is the current working directory of the process. (This is also inherited from the parent. It can be changed by use of the <code>chdir(2)</code> system call.)</p>
+
+<p>Pathnames starting with a &lsquo;/&rsquo; character are called absolute pathnames. Pathnames not starting with a &lsquo;/&rsquo; are called relative pathnames.</p></blockquote>
+
+<p>Entonces, si, por ejemplo, a una syscall como <code>open</code> le paso el path <code>archivo.log</code>, <code>open</code> va a abrir el archivo llamado <code>archivo.log</code> ubicado en el directorio actual de nuestro proceso. Este <em>no necesariamente</em> es el mismo directorio desde el que ejecutamos el proceso (porque pudo haber hecho un <code>chdir</code>), pero por lo general sí lo va a ser.</p>
+
+<h2>eclipse</h2>
+
+<p>Pero más de una vez nos pasa que, trabajando con eclipse, los path relativos se resuelven bien ejecutando nuestro proceso desde eclipse, pero falla cuando lo ejecutamos desde la consola.</p>
+
+<p>El problema, acá, es el CWD en cada caso.</p>
+
+<p>Cuando vamos a ejecutar desde la consola, por lo general vamos al directorio <code>Debug/</code> que contiene nuestro ejecutable, y le damos <code>./miEjecutable</code> para correrlo. En ese caso, el CWD es nuestro directorio <code>Debug/</code>, y todas las rutas relativas se resuelven a partir de allí.</p>
+
+<p>Pero eclipse no hace eso, o al menos no por defecto. Si vamos a las Run Configurations de eclipse (Run &ndash;> Run configurations&hellip;) y seleccionamos la de algún proyecto que ya hayamos ejecutado, vamos a encontrar que la pestaña de Arguments es algo así:</p>
+
+<p><img src="http://mgarciaisaia.github.io/tutorial-c/assets/eclipse-run-config-arguments.png" alt="Pestaña Arguments de las Run Configurations de eclipse" /></p>
+
+<p>¡Ahí está! Abajo de todo dice que el working directory de nuestro proceso va a ser <code>${workspace_loc:NUESTRO_PROYECTO}</code>, que es la forma horrenda que tiene eclipse para decir <em>&ldquo;el directorio raíz del proyecto&rdquo;</em>. De hecho, si miramos la pestaña Main de las Run Configurations, podemos observar algo <em>raro</em> arriba de todo:</p>
+
+<p><img src="http://mgarciaisaia.github.io/tutorial-c/assets/eclipse-run-config-main.png" alt="Pestaña Main de las Run Configurations de eclipse" /></p>
+
+<p>Nuestra aplicación no es <code>coercion</code> (el nombre del proyecto al que le saqué la captura), si no <code>Debug/coercion</code>. <em>Ese</em> es el comando que eclipse &ldquo;va a ejecutar en la consola&rdquo;. Digamos, eclipse va a hacer una especie de <code>cd</code> al directorio que marca como Working directory, y desde ahí va a ejecutar lo que diga en el campo C/C++ Application.</p>
+
+<p>Entonces, como nosotros desde la consola solemos <em>entrar a Debug</em> en lugar de ejecutar desde el directorio raíz del proyecto, ahí es donde aparecen las diferencias con las rutas relativas.</p>
+
+<h2>Del otro lado del espejo</h2>
+
+<p>Si quisieras seguir jugando, podrías ponerte a probar qué pasa si cambiás el comando de esa línea. ¿Podés ejecutar, por ejemplo, <code>ls</code>? ¿Podés ejecutar <code>cd</code>? ¿Podés pasarle los parámetros ahí? ¿Qué pasa cuando cambiás el working directory?</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Dream of Serialization]]></title>
