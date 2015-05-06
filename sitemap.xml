@@ -2,92 +2,92 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/19/arrancando/</loc>
-        <lastmod>2014-09-14T03:50:28-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/blog/2013/08/20/variables/</loc>
-        <lastmod>2013-12-28T15:14:57-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/blog/2013/10/21/bajando-el-nivel/</loc>
-        <lastmod>2013-12-28T15:14:57-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/30/inotify/</loc>
-        <lastmod>2014-03-20T19:31:34-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>
             http://mgarciaisaia.github.io/tutorial-c/blog/2013/12/31/me-di-cuenta-que-me-tiraste-la-senal/
         </loc>
-        <lastmod>2014-03-20T19:31:45-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/</loc>
-        <lastmod>2014-04-16T02:01:01-03:00</lastmod>
+        <lastmod>2015-05-06T00:41:15-03:00</lastmod>
     </url>
     <url>
         <loc>
             http://mgarciaisaia.github.io/tutorial-c/blog/2014/09/04/p-sherman-calle-wallaby-42-sydney/
         </loc>
-        <lastmod>2014-09-04T00:52:58-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>
             http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/un-tutorial-rapido-para-implementar-y-debuggear-malloc/
         </loc>
-        <lastmod>2014-12-26T00:48:56-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>
             http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/compiladores-y-errores/
         </loc>
-        <lastmod>2014-12-26T19:18:15-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/blog/2014/12/26/int-vs-int32-t/</loc>
-        <lastmod>2014-12-26T20:10:57-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>
             http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/07/between-a-rock-and-a-hard-link/
         </loc>
-        <lastmod>2015-02-09T15:46:49-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>
             http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/19/aprendiendo-assembler-para-entender-c/
         </loc>
-        <lastmod>2015-03-26T16:01:02-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/24/aprendiendo-c-con-gdb/</loc>
-        <lastmod>2015-02-24T23:53:44-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>
             http://mgarciaisaia.github.io/tutorial-c/blog/2015/02/27/dream-of-serialization/
         </loc>
-        <lastmod>2015-03-21T17:10:53-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/blog/2015/04/23/rutas-argentinas/</loc>
-        <lastmod>2015-04-23T02:57:33-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/blog/archives/</loc>
-        <lastmod>2015-04-23T02:57:33-03:00</lastmod>
+        <lastmod>2015-05-06T00:41:15-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/</loc>
-        <lastmod>2015-04-23T02:57:33-03:00</lastmod>
+        <lastmod>2015-05-06T00:41:15-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/lo-c-tutto/</loc>
-        <lastmod>2013-12-28T15:14:57-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:52-03:00</lastmod>
     </url>
     <url>
         <loc>http://mgarciaisaia.github.io/tutorial-c/robots.txt</loc>
-        <lastmod>2013-12-28T15:14:57-03:00</lastmod>
+        <lastmod>2015-04-23T15:46:25-03:00</lastmod>
     </url>
 </urlset>

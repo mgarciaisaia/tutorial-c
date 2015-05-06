@@ -4,7 +4,7 @@
   <title><![CDATA[C para Operativos]]></title>
   <link href="http://mgarciaisaia.github.io/tutorial-c/atom.xml" rel="self"/>
   <link href="http://mgarciaisaia.github.io/tutorial-c/"/>
-  <updated>2015-04-23T02:58:50-03:00</updated>
+  <updated>2015-05-06T00:42:40-03:00</updated>
   <id>http://mgarciaisaia.github.io/tutorial-c/</id>
   <author>
     <name><![CDATA[mgarciaisaia]]></name>
@@ -2215,7 +2215,7 @@ TL;DR: es muuuuuuuy difícil garantizar la ausencia de errores en el software, a
     <link href="http://mgarciaisaia.github.io/tutorial-c/blog/2014/03/20/she-bangs-she-bangs/"/>
     <updated>2014-03-20T19:33:00-03:00</updated>
     <id>http://mgarciaisaia.github.io/tutorial-c/blog/2014/03/20/she-bangs-she-bangs</id>
-    <content type="html"><![CDATA[<p>Si alguna vez editaron un script UNIX, seguramente habrán visto que arrancan de manera similar: <code>#!/bin/sh</code>. Por algún motivo, esa línea mágica se llama <a href="0">Shebang</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</p>
+    <content type="html"><![CDATA[<p>Si alguna vez editaron un script UNIX, seguramente habrán visto que arrancan de manera similar: <code>#!/bin/sh</code>. Por algún motivo, esa línea mágica se llama <a href="http://en.wikipedia.org/wiki/Shebang_(Unix)">Shebang</a><sup id="fnref:1"><a href="#fn:1" rel="footnote">1</a></sup>.</p>
 
 <figure class='code'><figcaption><span>mi_script </span></figcaption>
  <div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
